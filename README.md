@@ -2,6 +2,7 @@
 
 [![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?style=for-the-badge&logo=dbt&logoColor=white)](https://www.getdbt.com/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data_Cloud-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
+[![AWS](https://img.shields.io/badge/AWS-S3_Stage-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
 [![SQL](https://img.shields.io/badge/SQL-Advanced-blue?style=for-the-badge)](https://en.wikipedia.org/wiki/SQL)
 
 ## 📌 Project Overview & Audience
@@ -61,25 +62,23 @@ Verification of player peak tracking and longitudinal data:
 
 ## 🚀 Key Engineering Highlights
 
-### 1. Slowly Changing Dimensions (SCD Type 2)
+### 1. Cloud Data Extraction & AWS S3 Ingestion
+Extracted raw relational data from a local `.sqlite` database, transformed it into structured flat files, and orchestrated the secure upload to an **AWS S3 Bucket**. Configured an S3 External Stage within Snowflake, utilizing optimized `COPY INTO` bulk loading to ingest millions of rows into the `RAW` database layer before triggering the dbt pipeline.
 
+### 2. Slowly Changing Dimensions (SCD Type 2)
 Implemented dbt `snapshots` using hybrid `timestamp` and `check` strategies to track historical changes in player physical attributes and team tactical metrics — enabling true point-in-time analysis without data loss.
 
-### 2. DRY Principles with Modular Jinja Macros
-
+### 3. DRY Principles with Modular Jinja Macros
 Abstracted complex, repetitive business logic (betting upset identification, tactical threshold categorizations) into reusable **Jinja Macros** (`is_favorite_upset`, `classify_tactical_score`). Ensures a Single Source of Truth — if business definitions change, logic is updated in one place and propagates automatically.
 
-### 3. Advanced Window Functions & CTE Stacking
-
+### 4. Advanced Window Functions & CTE Stacking
 - Solved SQL nested window function limitations (e.g., pinpointing the exact date of a career peak) via logical CTE stacking
 - Utilized `RANK() OVER (PARTITION BY ...)` for dynamic league standings based on strict European tie-breaking rules (Points → Goal Difference → Goals Scored)
 
-### 4. Rigorous Data Quality & Governance
-
+### 5. Rigorous Data Quality & Governance
 - 70+ dbt tests covering `not_null`, `unique`, `accepted_values`, and composite key uniqueness
 - Used `dbt_utils.unique_combination_of_columns` to eliminate fan-out risk on unpivoted datasets
 - Static mapping tables (Countries, Leagues) migrated into version-controlled, testable **dbt Seeds**
-
 ---
 
 ## ⚙️ Quick Start & Setup
