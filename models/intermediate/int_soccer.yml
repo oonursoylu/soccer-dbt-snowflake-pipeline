@@ -1,0 +1,52 @@
+version: 2
+
+models:
+  - name: int_league_season_stats
+    description: "Aggregated match metrics at the league and season level."
+    columns:
+      - name: league_name
+        tests:
+          - not_null
+      - name: avg_goals_per_match
+        description: "Average goals per match, casted to decimal for precision."
+
+  - name: int_betting_logic
+    description: "Calculates bookie favorites and validates their predictions against match results."
+    columns:
+      - name: bookie_favorite
+        description: "The team favored by bookmakers based on the lowest odds."
+        tests:
+          - accepted_values:
+              values: ['Home', 'Away', 'Draw']
+      - name: prediction_status
+        description: "Indicator if the bookie's favorite actually won the match."
+        tests:
+          - accepted_values:
+              values: ['Correct', 'Wrong']
+
+  - name: int_player_age_analysis
+    description: "Calculates player age exactly at the time of each FIFA rating."
+    columns:
+      - name: age_at_rating
+        tests:
+          - not_null
+
+  - name: int_player_physical_technical_stats
+    description: "Combines player profiles with attributes, including weight conversion to KG and BMI calculation."
+    columns:
+      - name: bmi
+        description: "Body Mass Index calculated using height in meters and weight in kg."
+      - name: weight_kg
+        description: "Player weight converted from lbs to kilograms."
+
+  - name: int_team_match_performance
+    description: "Unpivoted match data to show performance from each team's perspective (Home or Away)."
+    columns:
+      - name: team_id
+        tests:
+          - not_null
+      - name: points_earned
+        description: "Points awarded based on match result (3 for Win, 1 for Draw, 0 for Loss)."
+        tests:
+          - accepted_values:
+              values: [0, 1, 3]

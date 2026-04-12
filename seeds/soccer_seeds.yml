@@ -1,0 +1,5 @@
+version: 2
+
+seeds:
+  - name: soccer__country
+  - name: soccer__league

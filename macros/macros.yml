@@ -1,0 +1,29 @@
+version: 2
+
+macros:
+  - name: classify_tactical_score
+    description: >
+      Categorizes raw tactical scores into descriptive tiers: 'High' (>=65), 
+      'Medium' (>=35), or 'Low'. This promotes the DRY (Don't Repeat Yourself) 
+      principle by centralizing the threshold logic for multiple tactical columns.
+    arguments:
+      - name: column_name
+        type: numeric
+        description: "The name of the column containing the tactical score to be classified."
+
+  - name: is_favorite_upset
+    description: >
+      Analyzes match results against betting odds to determine if an outcome 
+      was an 'Expected Win', a 'Favorite Upset', or an 'Underdog Win'. 
+      Note: This macro was refactored from a home/away structure to a 
+      team-centric structure for better flexibility in analytical models.
+    arguments:
+      - name: team_odds
+        type: numeric
+        description: "The betting odds for the specific team being analyzed."
+      - name: opponent_odds
+        type: numeric
+        description: "The betting odds for the opponent team."
+      - name: team_result
+        type: string
+        description: "The match outcome for the team ('Win', 'Draw', or 'Loss')."

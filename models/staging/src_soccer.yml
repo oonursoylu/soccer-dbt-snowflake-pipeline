@@ -1,0 +1,27 @@
+version: 2
+
+sources:
+  - name: soccer_raw
+    database: SOCCER_DB 
+    schema: RAW  # Fixed: Must match the exact schema name in Snowflake
+    description: "Raw European Soccer Database tables containing matches, players, and team attributes."
+    tables:
+      - name: player
+        identifier: PLAYER
+        description: "Raw player profiles."
+        
+      - name: team
+        identifier: TEAM
+        description: "Raw team identification data."
+        
+      - name: matches
+        identifier: MATCHES  # Mapped explicitly to the uppercase Snowflake table
+        description: "Raw match results and betting odds."
+        
+      - name: player_attributes
+        identifier: PLAYER_ATTRIBUTES
+        description: "Raw historical player ratings from FIFA."
+        
+      - name: team_attributes
+        identifier: TEAM_ATTRIBUTES
+        description: "Raw historical team tactical attributes."
