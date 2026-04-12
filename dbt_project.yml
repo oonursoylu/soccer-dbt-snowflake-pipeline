@@ -13,7 +13,21 @@ snapshot-paths: ["snapshots"]
 
 models:
   soccer_analytics:
+    # Adding a global tag for the entire project
+    +tags: ["soccer_pipeline"]
+
     staging:
       +materialized: view
+      +schema: staging
+      +tags: ["stg"]
+
+    intermediate:
+      # Ephemeral means it won't create physical tables/views in Snowflake
+      # It acts as a CTE (Common Table Expression) injected into the mart models
+      +materialized: ephemeral
+      +tags: ["int"]
+
     marts:
       +materialized: table
+      +schema: marts
+      +tags: ["mart"]
