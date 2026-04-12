@@ -5,6 +5,7 @@ with matches as (
 home_games as (
     select
         match_id,
+        league_id, 
         season,
         match_date,
         home_team_id as team_id,
@@ -18,6 +19,7 @@ home_games as (
 away_games as (
     select
         match_id,
+        league_id, 
         season,
         match_date,
         away_team_id as team_id,

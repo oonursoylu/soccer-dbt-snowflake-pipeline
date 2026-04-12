@@ -14,8 +14,8 @@ leagues as (
     select * from {{ ref('stg_soccer__league') }}
 ),
 
--- Creating a long-format table where each team in a match is a separate row
-team_match_outcomes as (
+-- Step 1: Unpivot to create a base team-centric view and calculate match results first
+base_outcomes as (
     -- Home team perspective
     select
         season,
@@ -28,9 +28,7 @@ team_match_outcomes as (
             when home_team_goal > away_team_goal then 'W'
             when home_team_goal < away_team_goal then 'L'
             else 'D'
-        end as team_result,
-        -- Clean Team-Centric call
-        {{ is_favorite_upset('odds_home_win', 'odds_away_win', 'odds_draw', "case when home_team_goal > away_team_goal then 'W' when home_team_goal < away_team_goal then 'L' else 'D' end") }} as betting_outcome
+        end as team_result
     from matches
     
     union all
@@ -47,13 +45,20 @@ team_match_outcomes as (
             when away_team_goal > home_team_goal then 'W'
             when away_team_goal < home_team_goal then 'L'
             else 'D'
-        end as team_result,
-        -- Consistent call, no parameter swapping needed
-        {{ is_favorite_upset('odds_away_win', 'odds_home_win', 'odds_draw', "case when away_team_goal > home_team_goal then 'W' when away_team_goal < home_team_goal then 'L' else 'D' end") }} as betting_outcome
+        end as team_result
     from matches
 ),
 
--- Aggregating unpredictable events (Favorite Fails and Giant Killers)
+-- Step 2: Call the macro using clean column names (DRY and Readability)
+team_match_outcomes as (
+    select 
+        *,
+        -- Beautiful, clean macro call using the derived team_result column
+        {{ is_favorite_upset('team_odds', 'opponent_odds', 'odds_draw', 'team_result') }} as betting_outcome
+    from base_outcomes
+),
+
+-- Step 3: Aggregate unpredictable events (Favorite Fails and Giant Killers)
 team_behavior as (
     select
         team_id,
@@ -68,7 +73,7 @@ team_behavior as (
     group by 1, 2, 3
 ),
 
--- Calculating the final Unpredictability Index
+-- Step 4: Calculate the final Unpredictability Index
 final as (
     select
         l.league_name,
@@ -79,6 +84,7 @@ final as (
         b.underdog_wins,
         b.high_risk_matches,
         (b.favorite_fails + b.underdog_wins) as total_unpredictable_events,
+        -- Calculate percentage of upsets, excluding high-risk (unpredictable) matches from the denominator
         round(
             (b.favorite_fails + b.underdog_wins) * 100.0 / 
             nullif(b.total_matches - b.high_risk_matches, 0), 2

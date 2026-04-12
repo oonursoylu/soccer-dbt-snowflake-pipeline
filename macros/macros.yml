@@ -4,12 +4,13 @@ macros:
   - name: classify_tactical_score
     description: >
       Categorizes raw tactical scores into descriptive tiers: 'High' (>=65), 
-      'Medium' (>=35), or 'Low'. This promotes the DRY (Don't Repeat Yourself) 
+      'Medium' (>=40), or 'Low'. This promotes the DRY (Don't Repeat Yourself) 
       principle by centralizing the threshold logic for multiple tactical columns.
     arguments:
-      - name: column_name
+      # FIXED: Matched the argument name exactly as it is in the SQL macro
+      - name: score
         type: numeric
-        description: "The name of the column containing the tactical score to be classified."
+        description: "The numeric tactical score to be classified."
 
   - name: is_favorite_upset
     description: >
@@ -24,6 +25,10 @@ macros:
       - name: opponent_odds
         type: numeric
         description: "The betting odds for the opponent team."
+      # ADDED: The missing draw_odds parameter that the SQL requires
+      - name: draw_odds
+        type: numeric
+        description: "The betting odds for a draw."
       - name: team_result
         type: string
-        description: "The match outcome for the team ('Win', 'Draw', or 'Loss')."
+        description: "The match outcome for the team ('W', 'D', or 'L')."

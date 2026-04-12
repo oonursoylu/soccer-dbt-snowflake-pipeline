@@ -9,7 +9,7 @@ teams as (
     select * from {{ ref('stg_soccer__team') }}
 ),
 
--- Aggregating tactical scores and ensuring data quality through observation counts
+-- Step 1: Aggregate tactical scores and ensure data quality
 team_tactical_summary as (
     select
         team_id,
@@ -23,42 +23,54 @@ team_tactical_summary as (
     group by 1
 ),
 
--- Final classification and playstyle identification
+-- Step 2: Apply the macros to generate classifications
+tactical_classes as (
+    select
+        team_id,
+        observation_count,
+        round(avg_speed, 2) as speed_index,
+        {{ classify_tactical_score('avg_speed') }} as speed_class,
+        
+        round(avg_passing, 2) as passing_index,
+        {{ classify_tactical_score('avg_passing') }} as passing_class,
+        
+        round(avg_shooting, 2) as shooting_index,
+        {{ classify_tactical_score('avg_shooting') }} as shooting_class,
+        
+        round(avg_pressure, 2) as pressure_index,
+        {{ classify_tactical_score('avg_pressure') }} as pressure_class,
+        
+        round(avg_aggression, 2) as aggression_index,
+        {{ classify_tactical_score('avg_aggression') }} as aggression_class
+    from team_tactical_summary
+    where observation_count >= 5 -- Statistical significance filter applied early
+),
+
+-- Step 3: Identify Archetype using the Macro Classifications (DRY Principle)
 final as (
     select
         t.team_long_name as team_name,
-        s.observation_count,
-        
-        -- Play Speed
-        round(s.avg_speed, 2) as speed_index,
-        {{ classify_tactical_score('s.avg_speed') }} as speed_class,
-        
-        -- Passing Style
-        round(s.avg_passing, 2) as passing_index,
-        {{ classify_tactical_score('s.avg_passing') }} as passing_class,
-        
-        -- Shooting / Chance Creation
-        round(s.avg_shooting, 2) as shooting_index,
-        {{ classify_tactical_score('s.avg_shooting') }} as shooting_class,
-        
-        -- Defensive DNA
-        round(s.avg_pressure, 2) as pressure_index,
-        {{ classify_tactical_score('s.avg_pressure') }} as pressure_class,
-        
-        round(s.avg_aggression, 2) as aggression_index,
-        {{ classify_tactical_score('s.avg_aggression') }} as aggression_class,
+        c.observation_count,
+        c.speed_index,
+        c.speed_class,
+        c.passing_index,
+        c.passing_class,
+        c.shooting_index,
+        c.shooting_class,
+        c.pressure_index,
+        c.pressure_class,
+        c.aggression_index,
+        c.aggression_class,
 
-        -- Tactical Archetype Identification
         case 
-            when s.avg_speed < 40 and s.avg_passing >= 65 then 'Tiki-Taka / Possession'
-            when s.avg_speed >= 65 and s.avg_shooting >= 60 then 'Fast Counter-Attack'
-            when s.avg_pressure >= 65 and s.avg_aggression >= 65 then 'High Pressing / Aggressive'
+            when c.speed_class = 'Low' and c.passing_class = 'High' then 'Tiki-Taka / Possession'
+            when c.speed_class = 'High' and c.shooting_class = 'High' then 'Fast Counter-Attack'
+            when c.pressure_class = 'High' and c.aggression_class = 'High' then 'High Pressing / Aggressive'
             else 'Balanced'
         end as tactical_archetype
-    from team_tactical_summary s
-    join teams t on s.team_id = t.team_id
-    -- Filtering for statistical significance (minimum 5 seasons/updates)
-    where s.observation_count >= 5
+        
+    from tactical_classes c
+    join teams t on c.team_id = t.team_id
 )
 
 select * from final
