@@ -11,14 +11,7 @@ home_games as (
         away_team_id as opponent_id,
         'Home' as venue,
         home_team_goal as goals_scored,
-        away_team_goal as goals_conceded,
-        
-        -- I am calculating match points based on the result for the home team.
-        case
-            when home_team_goal > away_team_goal then 3
-            when home_team_goal = away_team_goal then 1
-            else 0
-        end as points_earned
+        away_team_goal as goals_conceded
     from matches
 ),
 
@@ -31,22 +24,27 @@ away_games as (
         home_team_id as opponent_id,
         'Away' as venue,
         away_team_goal as goals_scored,
-        home_team_goal as goals_conceded,
-        
-        -- I am calculating match points based on the result for the away team.
-        case
-            when away_team_goal > home_team_goal then 3
-            when away_team_goal = home_team_goal then 1
-            else 0
-        end as points_earned
+        home_team_goal as goals_conceded
     from matches
 ),
 
 unpivoted_matches as (
-    -- I am combining home and away games to create a unified performance view per team per match.
+    -- Step 1: Combine the data first (Unpivot)
     select * from home_games
     union all
     select * from away_games
+),
+
+final_performance as (
+    -- Step 2: Calculate business logic (points) ONCE for the unified dataset
+    select 
+        *,
+        case
+            when goals_scored > goals_conceded then 3
+            when goals_scored = goals_conceded then 1
+            else 0
+        end as points_earned
+    from unpivoted_matches
 )
 
-select * from unpivoted_matches
+select * from final_performance

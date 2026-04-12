@@ -6,19 +6,19 @@ attributes as (
     select * from {{ ref('stg_soccer__player_attributes') }}
 ),
 
-joined as (
+-- Step 1: Base conversions (Imperial to Metric)
+base_metrics as (
     select
+        a.attribute_pk, -- ADDED: The crucial Primary Key to maintain granularity!
         p.player_id,
         p.player_name,
         p.birthday_date,
-        p.height_cm,
-        p.weight_lbs,
         a.rating_date,
         a.overall_rating,
         a.potential,
         a.preferred_foot,
         
-        -- I am selecting physical and technical attributes for outfield players
+        -- Physical and technical attributes
         a.attacking_work_rate,
         a.defensive_work_rate,
         a.acceleration,
@@ -37,13 +37,22 @@ joined as (
         a.marking,
         a.standing_tackle,
 
-        -- I am converting weight from lbs to kg and calculating BMI. 
-        -- Height is in cm, so I divide by 100 to get meters.
+        -- Converting units ONCE
         cast((p.weight_lbs * 0.453592) as decimal(5,2)) as weight_kg,
-        cast(((p.weight_lbs * 0.453592) / power((p.height_cm / 100.0), 2)) as decimal(5,2)) as bmi
+        cast((p.height_cm / 100.0) as decimal(5,2)) as height_m
 
     from players p
-    left join attributes a on p.player_id = a.player_id
+    -- Switched to INNER JOIN: If a player has no attributes, we can't show their stats anyway
+    inner join attributes a on p.player_id = a.player_id
+),
+
+-- Step 2: Calculate dependent metrics using the clean base metrics (DRY Principle)
+final_stats as (
+    select 
+        *,
+        -- Now BMI calculation is incredibly easy to read
+        cast((weight_kg / power(height_m, 2)) as decimal(5,2)) as bmi
+    from base_metrics
 )
 
-select * from joined
+select * from final_stats

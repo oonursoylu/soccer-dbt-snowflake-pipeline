@@ -2,4 +2,29 @@ version: 2
 
 seeds:
   - name: soccer__country
+    description: "Static mapping table for European countries."
+    columns:
+      - name: id
+        description: "Primary key for the country."
+        tests:
+          - unique
+          - not_null
+      - name: name
+        tests:
+          - not_null
+
   - name: soccer__league
+    description: "Static mapping table for European football leagues."
+    columns:
+      - name: id
+        description: "Primary key for the league."
+        tests:
+          - unique
+          - not_null
+      - name: country_id
+        description: "Foreign key linking the league to its country."
+        tests:
+          - not_null
+      - name: name
+        tests:
+          - not_null

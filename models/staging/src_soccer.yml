@@ -3,7 +3,7 @@ version: 2
 sources:
   - name: soccer_raw
     database: SOCCER_DB 
-    schema: RAW  # Fixed: Must match the exact schema name in Snowflake
+    schema: RAW  
     description: "Raw European Soccer Database tables containing matches, players, and team attributes."
     tables:
       - name: player

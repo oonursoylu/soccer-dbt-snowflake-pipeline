@@ -65,11 +65,17 @@ models:
 
   - name: int_team_match_performance
     description: "Unpivoted match data to show performance from each team's perspective (Home or Away)."
+    # ADDED: Composite unique test to ensure the unpivot didn't create duplicates
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - match_id
+            - team_id
     columns:
       - name: team_id
         tests:
           - not_null
-      # ADDED: Match ID to clarify the granularity of the unpivoted rows
+      # Match ID is NOT unique on its own here, but must not be null
       - name: match_id
         tests:
           - not_null
