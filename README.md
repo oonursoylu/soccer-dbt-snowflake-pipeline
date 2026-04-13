@@ -1,4 +1,4 @@
-# ⚽ European Soccer Analytics - Modern Data Stack (MDS) Pipeline
+# European Soccer Analytics - Modern Data Stack (MDS) Pipeline
 
 [![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?style=for-the-badge&logo=dbt&logoColor=white)](https://www.getdbt.com/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data_Cloud-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
@@ -7,28 +7,28 @@
 
 ---
 
-## 📌 Project Overview & Audience
+## Project Overview & Audience
 
 This project is an end-to-end Analytics Engineering pipeline built to transform raw European soccer data into business-ready, high-performance analytical models.
 
-**🎯 Target Audience:**
+**Target Audience:**
 - **BI Analysts:** Query ready-to-use analytical tables directly from the `analytics_marts` schema in Snowflake.
 - **Data Scientists & Engineers:** Leverage SCD Type 2 historical snapshots for exact point-in-time feature engineering. Ephemeral models are used for logical CTE abstraction and modularization, keeping the DAG clean without creating additional tables in Snowflake.
 
 ---
 
-## 📦 Dataset & Project Scale
+## Dataset & Project Scale
 
 The pipeline processes the renowned Kaggle dataset: [European Soccer Database](https://www.kaggle.com/datasets/hugomathien/soccer), ingested into Snowflake via AWS S3.
 
 - **Scale:** Over 25,000 matches, over 10,000 players, 11 major European Leagues
 - **Timeline:** Covers 8 consecutive seasons of historical data
-- **Infrastructure:** 7 Staging Views, 2 SCD Type 2 Snapshots, 4 Ephemeral Intermediate Models, and 4 Materialized Data Marts
+- **Infrastructure:** 7 Staging Views, 2 SCD Type 2 Snapshots, 5 Ephemeral Intermediate Models, and 4 Materialized Data Marts
 - **Quality Assurance:** 60+ automated dbt data tests (including 4 custom singular tests and composite keys)
 
 ---
 
-## 🏗️ Architecture & Data Lineage
+## Architecture & Data Lineage
 
 The project strictly follows a multi-layered, modular architecture based on Modern Data Stack principles, highlighting point-in-time historical tracking via Snapshots.
 
@@ -36,7 +36,7 @@ The project strictly follows a multi-layered, modular architecture based on Mode
 
 ---
 
-## 💡 Key Business Insights Delivered
+## Key Business Insights Delivered
 
 By querying the finalized Data Marts (`mart_`), the pipeline uncovered several compelling, data-driven historical insights:
 
@@ -48,23 +48,23 @@ By querying the finalized Data Marts (`mart_`), the pipeline uncovered several c
 
 ---
 
-## 📊 Sample Query Output
+## Sample Query Output
 
 > **Evidence of Production-Ready Models:** These are real results queried directly from the finalized `mart_` models in Snowflake, confirming the accuracy of the pipeline's logic.
 
-### ⚽ Team Performance Analytics (Offensive Dominance)
+### Team Performance Analytics (Offensive Dominance)
 Verification of the 3.18 goals-per-game record:
 
 ![Mart Standings Output](assets/mart_standings_sample.png)
 
-### 📈 Player Evolution (SCD Type 2 History)
+### Player Evolution (SCD Type 2 History)
 Verification of player peak tracking and longitudinal data. The query securely filters for the 90+ elite club, calculating their exact age at their absolute peak and counting their total historical attribute updates to demonstrate data density:
 
 ![Mart Player Lifecycle Output](assets/mart_player_lifecycle_sample.png)
 
 ---
 
-## 🚀 Key Engineering Highlights
+## Key Engineering Highlights
 
 ### 1. Cloud Data Extraction & AWS S3 Ingestion
 Extracted raw relational data from a local `.sqlite` database, transformed it into structured flat files, and orchestrated the secure upload to an **AWS S3 Bucket**. Configured an S3 External Stage within Snowflake, utilizing optimized `COPY INTO` bulk loading to ingest **over 220,000 total historical records across all entities** into the `RAW` database layer before triggering the dbt pipeline.
@@ -92,7 +92,7 @@ The pipeline is currently executed via the dbt CLI. In a production environment,
 
 ---
 
-## ⚙️ Quick Start & Setup
+## Quick Start & Setup
 
 **1. Clone the repository:**
 
@@ -143,11 +143,11 @@ The documentation will be available at `http://localhost:8080`.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
-## ✉️ Contact
+## Contact
 
 **Onur Soylu** — Data / Analytics Engineer  
 [LinkedIn Profile](https://www.linkedin.com/in/onur-soylu-0ba931119/) | [oonursoylu@gmail.com](mailto:oonursoylu@gmail.com)
