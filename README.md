@@ -5,22 +5,26 @@
 [![AWS](https://img.shields.io/badge/AWS-S3_Stage-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
 [![SQL](https://img.shields.io/badge/SQL-Advanced-blue?style=for-the-badge)](https://en.wikipedia.org/wiki/SQL)
 
+---
+
 ## 📌 Project Overview & Audience
 
 This project is an end-to-end Analytics Engineering pipeline built to transform raw European soccer data into business-ready, high-performance analytical models.
 
-**🎯 Target Audience:** Designed to empower **Business Intelligence (BI) Analysts** with pre-aggregated, granular dashboards, and **Data Scientists (ML Engineers)** with point-in-time exact feature engineering for predictability models.
+**🎯 Target Audience:**
+- **BI Analysts:** Query ready-to-use analytical tables directly from the `analytics_marts` schema in Snowflake.
+- **Data Scientists & Engineers:** Leverage SCD Type 2 historical snapshots for exact point-in-time feature engineering. Ephemeral models are used for logical CTE abstraction and modularization, keeping the DAG clean without creating additional tables in Snowflake.
 
 ---
 
 ## 📦 Dataset & Project Scale
 
-The pipeline processes the renowned [Kaggle European Soccer Database](https://www.kaggle.com/datasets/hugomathien/soccer), ingested into Snowflake.
+The pipeline processes the renowned Kaggle dataset: [European Soccer Database](https://www.kaggle.com/datasets/hugomathien/soccer), ingested into Snowflake via AWS S3.
 
-- **Scale:** +25,000 matches, +10,000 players, 11 major European Leagues
+- **Scale:** Over 25,000 matches, over 10,000 players, 11 major European Leagues
 - **Timeline:** Covers 8 consecutive seasons of historical data
 - **Infrastructure:** 7 Staging Views, 2 SCD Type 2 Snapshots, 4 Ephemeral Intermediate Models, and 4 Materialized Data Marts
-- **Quality Assurance:** 70+ automated dbt data tests (including composite keys and accepted values)
+- **Quality Assurance:** 60+ automated dbt data tests (including 4 custom singular tests and composite keys)
 
 ---
 
@@ -36,10 +40,10 @@ The project strictly follows a multi-layered, modular architecture based on Mode
 
 By querying the finalized Data Marts (`mart_`), the pipeline uncovered several compelling, data-driven historical insights:
 
-* **The Ultimate Legend (SCD Type 2 Proof):** Utilizing historical snapshotting to track attribute changes over time, the model identified **Luis Alberto** as the player who maintained his absolute peak physical rating for the longest duration—staying at his prime for an astonishing **214.2 months**.
-* **Data-Driven Peak Age:** Statistical aggregation of historical player lifecycles reveals that a European soccer player hits their absolute statistical prime (Peak Rating) at the exact average age of **26.1 years**, with the highest individual rating ever recorded in the dataset reaching **94**.
-* **The "Giant Killer" Index:** By algorithmically comparing bookmaker odds against actual match outcomes, the unpredictability model mathematically proved that the **Scotland Premier League** is the most volatile and unpredictable league, with favorites failing to win at a significantly higher rate (**Index Score: 3681.36**) than top-tier leagues.
-* **Offensive Dominance:** Analyzing historical league standings shows that **Real Madrid CF (2011/2012 Season)** stands as the most lethal attacking side in modern history, averaging a staggering **3.18 goals per game**.
+* **The Elite Tiers (SCD Type 2 Depth):** The model identified all players who reached the legendary **90+ overall rating** milestone within the dataset. By preserving historical attribute changes via SCD Type 2 row insertions, the pipeline tracks the exact volume of updates (`total_updates`) and enables precise analytical calculations based on that history—such as identifying that **Lionel Messi** hit his absolute peak (94) at age 28, and **Cristiano Ronaldo** (93) at age 30.
+* **Data-Driven Peak Age:** Statistical aggregation of historical player lifecycles reveals that a European soccer player hits their statistical prime (Peak FIFA Rating) at an average age of **26.1 years**, reflecting the underlying algorithms of the video game's attribute data.
+* **The "Giant Killer" Index:** By algorithmically comparing bookmaker odds against actual match outcomes, the unpredictability model mathematically proved that the **Scottish Premiership** is the most volatile and unpredictable league, with favorites failing to win at a significantly higher rate (**Average Upset Rate: 36.8%**) than other top-tier European leagues.
+* **Offensive Dominance:** Analyzing historical league standings shows that **Real Madrid CF (2011/2012 Season)** stands as the most lethal attacking side within the dataset's history (2008–2016), averaging a staggering **3.18 goals per game**.
 * **The Invincibles (Peak Win Rate):** The pipeline identified the **2010/2011 FC Porto** squad as the most dominant single-season team, achieving a monumental **90.0% Win Rate** across their entire domestic campaign.
 
 ---
@@ -54,7 +58,7 @@ Verification of the 3.18 goals-per-game record:
 ![Mart Standings Output](assets/mart_standings_sample.png)
 
 ### 📈 Player Evolution (SCD Type 2 History)
-Verification of player peak tracking and longitudinal data:
+Verification of player peak tracking and longitudinal data. The query securely filters for the 90+ elite club, calculating their exact age at their absolute peak and counting their total historical attribute updates to demonstrate data density:
 
 ![Mart Player Lifecycle Output](assets/mart_player_lifecycle_sample.png)
 
@@ -63,10 +67,10 @@ Verification of player peak tracking and longitudinal data:
 ## 🚀 Key Engineering Highlights
 
 ### 1. Cloud Data Extraction & AWS S3 Ingestion
-Extracted raw relational data from a local `.sqlite` database, transformed it into structured flat files, and orchestrated the secure upload to an **AWS S3 Bucket**. Configured an S3 External Stage within Snowflake, utilizing optimized `COPY INTO` bulk loading to ingest millions of rows into the `RAW` database layer before triggering the dbt pipeline.
+Extracted raw relational data from a local `.sqlite` database, transformed it into structured flat files, and orchestrated the secure upload to an **AWS S3 Bucket**. Configured an S3 External Stage within Snowflake, utilizing optimized `COPY INTO` bulk loading to ingest **over 220,000 total historical records across all entities** into the `RAW` database layer before triggering the dbt pipeline.
 
 ### 2. Slowly Changing Dimensions (SCD Type 2)
-Implemented dbt `snapshots` using hybrid `timestamp` and `check` strategies to track historical changes in player physical attributes and team tactical metrics — enabling true point-in-time analysis without data loss.
+Implemented dbt `snapshots` using a hybrid approach combining `timestamp` and `check` strategies to track historical changes in player physical attributes and team tactical metrics — enabling true point-in-time analysis without data loss.
 
 ### 3. DRY Principles with Modular Jinja Macros
 Abstracted complex, repetitive business logic (betting upset identification, tactical threshold categorizations) into reusable **Jinja Macros** (`is_favorite_upset`, `classify_tactical_score`). Ensures a Single Source of Truth — if business definitions change, logic is updated in one place and propagates automatically.
@@ -76,9 +80,16 @@ Abstracted complex, repetitive business logic (betting upset identification, tac
 - Utilized `RANK() OVER (PARTITION BY ...)` for dynamic league standings based on strict European tie-breaking rules (Points → Goal Difference → Goals Scored)
 
 ### 5. Rigorous Data Quality & Governance
-- 70+ dbt tests covering `not_null`, `unique`, `accepted_values`, and composite key uniqueness
-- Used `dbt_utils.unique_combination_of_columns` to eliminate fan-out risk on unpivoted datasets
-- Static mapping tables (Countries, Leagues) migrated into version-controlled, testable **dbt Seeds**
+- **60+ dbt tests** covering `not_null`, `unique`, and `accepted_values`.
+- **4 Custom Singular Tests:** Implemented advanced SQL-based validations:
+  - `assert_peak_rating_logic`: Validates that a player's peak rating mathematically cannot be lower than their initial rating.
+  - `assert_realistic_match_counts`: Prevents data volume anomalies (fan-out) by capping maximum league matches.
+  - `assert_valid_fifa_ratings`: Ensures attribute scores strictly fall within the official FIFA range (1-99).
+  - `assert_valid_unpredictability_index`: Mathematically validates that the unpredictability percentage strictly falls within the valid 0-100 range.
+
+### 6. Pipeline Execution & Orchestration
+The pipeline is currently executed via the dbt CLI. In a production environment, this architecture is fully designed to be orchestrated and scheduled using tools such as **Apache Airflow**, **Prefect**, or **dbt Cloud**.
+
 ---
 
 ## ⚙️ Quick Start & Setup
@@ -86,7 +97,7 @@ Abstracted complex, repetitive business logic (betting upset identification, tac
 **1. Clone the repository:**
 
 ```bash
-git clone https://github.com/your-username/soccer-dbt-pipeline.git
+git clone https://github.com/oonursoylu/soccer-dbt-pipeline.git
 cd soccer-dbt-pipeline
 ```
 
@@ -106,7 +117,7 @@ soccer_analytics:
       role: SYSADMIN
       database: SOCCER_DB
       warehouse: COMPUTE_WH
-      schema: MARTS
+      schema: analytics_marts
       threads: 4
 ```
 
@@ -116,7 +127,7 @@ soccer_analytics:
 dbt deps      # Install dbt_utils
 dbt seed      # Load static country/league mappings
 dbt snapshot  # Capture initial historical states
-dbt build     # Run all models and 70+ tests
+dbt build     # Execute the entire DAG in order (runs models, tests, and snapshots)
 ```
 
 **4. Explore the Data Dictionary:**
@@ -128,7 +139,7 @@ dbt docs generate
 dbt docs serve
 ```
 
-Opens at `http://localhost:8080`.
+The documentation will be available at `http://localhost:8080`.
 
 ---
 

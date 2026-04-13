@@ -14,6 +14,8 @@ base_career_stats as (
         player_id,
         rating_date,
         overall_rating,
+        dbt_valid_from,
+        dbt_valid_to,
         -- Get the first rating chronologically
         first_value(overall_rating) over (
             partition by player_id 
@@ -27,13 +29,20 @@ base_career_stats as (
     from player_snapshots
 ),
 
--- Step 2: Use the pre-calculated peak_rating_value to find the peak_date
+-- Step 2: Use the pre-calculated peak_rating_value to find peak milestones
 peak_date_stats as (
     select
         *,
         -- Now we use the column peak_rating_value instead of a nested max() over()
         max(case when overall_rating = peak_rating_value then rating_date end) 
-            over (partition by player_id) as peak_date
+            over (partition by player_id) as peak_date,
+            
+        -- SAFE DURATION LOGIC: Find the exact first and last day of the peak rating.
+        -- We use '2016-06-30' to safely cap active snapshot records (dbt_valid_to IS NULL)
+        min(case when overall_rating = peak_rating_value then dbt_valid_from end) 
+            over (partition by player_id) as peak_start_date,
+        max(case when overall_rating = peak_rating_value then coalesce(dbt_valid_to, '2016-06-30'::date) end) 
+            over (partition by player_id) as peak_end_date
     from base_career_stats
 ),
 
@@ -59,6 +68,8 @@ final as (
         ) as growth_percentage,
         datediff('year', p.birthday_date, s.career_start_date) as age_at_start,
         datediff('year', p.birthday_date, s.peak_date) as age_at_peak,
+        -- Calculate precise months spent at peak without overlapping SUM errors
+        datediff('month', s.peak_start_date, s.peak_end_date) as peak_duration_months,
         s.total_updates,
         s.career_start_date,
         s.peak_date as peak_rating_date
