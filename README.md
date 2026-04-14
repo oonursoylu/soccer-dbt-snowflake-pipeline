@@ -3,7 +3,9 @@
 [![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?style=for-the-badge&logo=dbt&logoColor=white)](https://www.getdbt.com/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data_Cloud-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
 [![AWS](https://img.shields.io/badge/AWS-S3_Stage-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
-[![SQL](https://img.shields.io/badge/SQL-Advanced-blue?style=for-the-badge)](https://en.wikipedia.org/wiki/SQL)
+[![dbt CI/CD Pipeline](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions/workflows/dbt_pipeline.yml/badge.svg)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions)
+
+**[View Interactive Data Dictionary & Lineage Graph](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)**
 
 ---
 
@@ -24,7 +26,7 @@ The pipeline processes the renowned Kaggle dataset: [European Soccer Database](h
 - **Scale:** Over 25,000 matches, over 10,000 players, 11 major European Leagues
 - **Timeline:** Covers 8 consecutive seasons of historical data
 - **Infrastructure:** 7 Staging Views, 2 SCD Type 2 Snapshots, 5 Ephemeral Intermediate Models, and 4 Materialized Data Marts
-- **Quality Assurance:** 60+ automated dbt data tests (including 4 custom singular tests and composite keys)
+- **Quality Assurance:** 60+ automated dbt data tests integrated into a continuous CI/CD pipeline (GitHub Actions), ensuring zero-breakage deployments.
 
 ---
 
@@ -87,8 +89,8 @@ Abstracted complex, repetitive business logic (betting upset identification, tac
   - `assert_valid_fifa_ratings`: Ensures attribute scores strictly fall within the official FIFA range (1-99).
   - `assert_valid_unpredictability_index`: Mathematically validates that the unpredictability percentage strictly falls within the valid 0-100 range.
 
-### 6. Pipeline Execution & Orchestration
-The pipeline is currently executed via the dbt CLI. In a production environment, this architecture is fully designed to be orchestrated and scheduled using tools such as **Apache Airflow**, **Prefect**, or **dbt Cloud**.
+### 6. Automated CI/CD & Documentation Deployment
+Implemented a robust CI/CD workflow using **GitHub Actions**. Every push or pull request triggers an automated `dbt build` cycle in Snowflake, verifying model integrity and data quality tests before merging. Upon a successful build, the project's documentation and lineage DAG are automatically updated and hosted via **GitHub Pages**, providing a transparent and up-to-date data contract for all stakeholders.
 
 ---
 
@@ -132,8 +134,9 @@ dbt build     # Execute the entire DAG in order (runs models, tests, and snapsho
 
 **4. Explore the Data Dictionary:**
 
-This project includes full column-level documentation and an interactive DAG (Directed Acyclic Graph):
+This project includes full column-level documentation and an interactive DAG. You can view the live version here: [Project Documentation](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)
 
+Alternatively, to serve it locally:
 ```bash
 dbt docs generate
 dbt docs serve
