@@ -3,9 +3,7 @@
 [![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?style=for-the-badge&logo=dbt&logoColor=white)](https://www.getdbt.com/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data_Cloud-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
 [![AWS](https://img.shields.io/badge/AWS-S3_Stage-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
-[![dbt CI/CD Pipeline](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions/workflows/dbt_pipeline.yml/badge.svg)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions)
-
-**[View Interactive Data Dictionary & Lineage Graph](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)**
+[![dbt CI/CD Pipeline](https://img.shields.io/github/actions/workflow/status/oonursoylu/soccer-dbt-snowflake-pipeline/dbt_pipeline.yml?style=for-the-badge&logo=github&label=CI/CD)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions)
 
 ---
 
@@ -89,8 +87,8 @@ Abstracted complex, repetitive business logic (betting upset identification, tac
   - `assert_valid_fifa_ratings`: Ensures attribute scores strictly fall within the official FIFA range (1-99).
   - `assert_valid_unpredictability_index`: Mathematically validates that the unpredictability percentage strictly falls within the valid 0-100 range.
 
-### 6. Automated CI/CD & Documentation Deployment
-Implemented a robust CI/CD workflow using **GitHub Actions**. Every push or pull request triggers an automated `dbt build` cycle in Snowflake, verifying model integrity and data quality tests before merging. Upon a successful build, the project's documentation and lineage DAG are automatically updated and hosted via **GitHub Pages**, providing a transparent and up-to-date data contract for all stakeholders.
+### 6. Automated CI/CD Pipeline
+Implemented a robust CI/CD workflow using **GitHub Actions**. Every push or pull request triggers an automated `dbt build` cycle in Snowflake, verifying model integrity and executing 60+ data quality tests before merging, ensuring a zero-breakage deployment strategy.
 
 ---
 
@@ -99,8 +97,8 @@ Implemented a robust CI/CD workflow using **GitHub Actions**. Every push or pull
 **1. Clone the repository:**
 
 ```bash
-git clone https://github.com/oonursoylu/soccer-dbt-pipeline.git
-cd soccer-dbt-pipeline
+git clone https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline.git
+cd soccer-dbt-snowflake-pipeline
 ```
 
 **2. Configure your `profiles.yml`:**
@@ -134,9 +132,8 @@ dbt build     # Execute the entire DAG in order (runs models, tests, and snapsho
 
 **4. Explore the Data Dictionary:**
 
-This project includes full column-level documentation and an interactive DAG. You can view the live version here: [Project Documentation](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)
+This project includes full column-level documentation and an interactive DAG (Directed Acyclic Graph). To generate and serve it locally, run:
 
-Alternatively, to serve it locally:
 ```bash
 dbt docs generate
 dbt docs serve
