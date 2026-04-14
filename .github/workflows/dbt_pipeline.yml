@@ -75,6 +75,9 @@ jobs:
                 threads: 4
           EOF
 
+      - name: dbt deps
+        run: dbt deps
+      
       - name: dbt docs generate
         run: dbt docs generate
 
