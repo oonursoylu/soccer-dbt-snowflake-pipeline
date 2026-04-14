@@ -9,14 +9,14 @@ models:
           - not_null
       - name: avg_goals_per_match
         description: "Average goals per match, casted to decimal for precision."
-        # ADDED: Ensuring the calculation never returns null
+        # Ensuring the calculation never returns null
         tests:
           - not_null
 
   - name: int_betting_logic
     description: "Calculates bookie favorites and validates their predictions against match results."
     columns:
-      # ADDED: Match ID as the primary identifier to ensure uniqueness
+      # Match ID as the primary identifier to ensure uniqueness
       - name: match_id
         description: "Primary key for the match."
         tests:
@@ -36,7 +36,7 @@ models:
   - name: int_player_age_analysis
     description: "Calculates player age exactly at the time of each FIFA rating."
     columns:
-      # ADDED: Ensuring each rating record is unique and traceable
+      # Ensuring each rating record is unique and traceable
       - name: attribute_pk
         description: "Primary key for the specific player rating record."
         tests:
@@ -49,7 +49,7 @@ models:
   - name: int_player_physical_technical_stats
     description: "Combines player profiles with attributes, including weight conversion to KG and BMI calculation."
     columns:
-      # ADDED: Primary key test for data integrity
+      # Primary key test for data integrity
       - name: attribute_pk
         description: "Primary key for the specific player attribute record."
         tests:
@@ -57,7 +57,7 @@ models:
           - not_null
       - name: bmi
         description: "Body Mass Index calculated using height in meters and weight in kg."
-        # ADDED: Null check for the calculated column
+        # Null check for the calculated column
         tests: 
           - not_null
       - name: weight_kg
@@ -65,7 +65,7 @@ models:
 
   - name: int_team_match_performance
     description: "Unpivoted match data to show performance from each team's perspective (Home or Away)."
-    # ADDED: Composite unique test to ensure the unpivot didn't create duplicates
+    # Composite unique test to ensure the unpivot didn't create duplicates
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:

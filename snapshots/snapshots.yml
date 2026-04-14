@@ -20,12 +20,10 @@ snapshots:
       - name: dbt_valid_to
         description: "The timestamp when this record was superseded (NULL means currently active)."
 
-  # ADDED: The missing documentation and tests for player profiles
   - name: snp_player_profiles
     description: >
       Captures physical changes (height, weight) in players over time using the check strategy.
     columns:
-      # ADDED: dbt's built-in surrogate key for snapshots is the true unique identifier
       - name: dbt_scd_id
         tests:
           - unique

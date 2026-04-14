@@ -9,7 +9,7 @@ attributes as (
 -- Step 1: Base conversions (Imperial to Metric)
 base_metrics as (
     select
-        a.attribute_pk, -- ADDED: The crucial Primary Key to maintain granularity!
+        a.attribute_pk, -- The crucial Primary Key to maintain granularity!
         p.player_id,
         p.player_name,
         p.birthday_date,

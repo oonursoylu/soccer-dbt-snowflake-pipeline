@@ -6,5 +6,5 @@ select
     team_name,
     season,
     unpredictability_index
-from {{ ref('mart_team_betting_predictability') }} -- Updated reference name
+from {{ ref('mart_team_betting_predictability') }} 
 where unpredictability_index < 0 or unpredictability_index > 100

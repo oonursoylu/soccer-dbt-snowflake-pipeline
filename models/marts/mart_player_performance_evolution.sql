@@ -38,7 +38,6 @@ peak_date_stats as (
             over (partition by player_id) as peak_date,
             
         -- SAFE DURATION LOGIC: Find the exact first and last day of the peak rating.
-        -- We use '2016-06-30' to safely cap active snapshot records (dbt_valid_to IS NULL)
         min(case when overall_rating = peak_rating_value then dbt_valid_from end) 
             over (partition by player_id) as peak_start_date,
         max(case when overall_rating = peak_rating_value then coalesce(dbt_valid_to, '2016-06-30'::date) end) 

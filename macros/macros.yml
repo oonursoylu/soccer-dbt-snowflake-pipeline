@@ -25,7 +25,6 @@ macros:
       - name: opponent_odds
         type: numeric
         description: "The betting odds for the opponent team."
-      # ADDED: The missing draw_odds parameter that the SQL requires
       - name: draw_odds
         type: numeric
         description: "The betting odds for a draw."
