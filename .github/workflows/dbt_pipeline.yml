@@ -23,7 +23,7 @@ jobs:
         run: |
           mkdir -p ~/.dbt
           cat > ~/.dbt/profiles.yml << EOF
-          your_project:
+          soccer_analytics:
             target: ci
             outputs:
               ci:
