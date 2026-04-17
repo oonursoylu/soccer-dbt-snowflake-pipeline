@@ -4,3 +4,4 @@ logs/
 
 # Ignore environment variables file
 .env
+.vscode/

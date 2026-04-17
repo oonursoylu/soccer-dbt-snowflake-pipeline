@@ -23,7 +23,7 @@ The pipeline processes the renowned Kaggle dataset: [European Soccer Database](h
 
 - **Scale:** Over 25,000 matches, over 10,000 players, 11 major European Leagues
 - **Timeline:** Covers 8 consecutive seasons of historical data
-- **Infrastructure:** 7 Staging Views, 2 SCD Type 2 Snapshots, 5 Ephemeral Intermediate Models, and 4 Materialized Data Marts
+- **Infrastructure:** 7 Staging Views, 3 SCD Type 2 Snapshots, 5 Ephemeral Intermediate Models, 4 Materialized Data Marts, and 2 Custom Jinja Macros.
 - **Quality Assurance:** 60+ automated dbt data tests integrated into a continuous CI/CD pipeline (GitHub Actions), ensuring zero-breakage deployments.
 
 ---
