@@ -8,23 +8,30 @@ attributes as (
 
 age_calc as (
     select
-        a.attribute_pk, -- Bringing the primary key from attributes
+        a.attribute_pk,
         p.player_id,
         p.player_name,
-        p.birthday_date, 
+        p.birthday_date,
         a.rating_date,
         a.overall_rating,
-        -- Calculating player age based on the specific rating date
-        datediff(year, p.birthday_date, a.rating_date) as age_at_rating
+
+        -- Correct age calc: subtract 1 if birthday hasn't passed this year
+        datediff('year', p.birthday_date, a.rating_date)
+        - case
+              when to_char(a.rating_date,   'MMDD')
+                 < to_char(p.birthday_date, 'MMDD')
+              then 1
+              else 0
+          end as age_at_rating
     from players p
     inner join attributes a on p.player_id = a.player_id
 )
 
-select 
+select
     attribute_pk,
     player_id,
     player_name,
-    birthday_date as birthday, 
+    birthday_date,
     rating_date,
     overall_rating,
     age_at_rating
