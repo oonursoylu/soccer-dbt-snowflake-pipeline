@@ -3,12 +3,12 @@
     
 
 select
-    team_attribute_pk as unique_field,
+    dbt_scd_id as unique_field,
     count(*) as n_records
 
 from SOCCER_DB.SNAPSHOTS.snp_team_attributes
-where team_attribute_pk is not null
-group by team_attribute_pk
+where dbt_scd_id is not null
+group by dbt_scd_id
 having count(*) > 1
 
 

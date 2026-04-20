@@ -1,0 +1,25 @@
+
+    
+    
+
+with child as (
+    select country_id as from_field
+    from SOCCER_DB.ci_pr_test_staging.stg_soccer__league
+    where country_id is not null
+),
+
+parent as (
+    select country_id as to_field
+    from SOCCER_DB.ci_pr_test_staging.stg_soccer__country
+)
+
+select
+    from_field
+
+from child
+left join parent
+    on child.from_field = parent.to_field
+
+where parent.to_field is null
+
+

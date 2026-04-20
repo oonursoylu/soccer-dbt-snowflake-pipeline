@@ -7,7 +7,7 @@ renamed as (
         id                              as team_attribute_pk,
         team_fifa_api_id,
         team_api_id                     as team_id,
-        date                            as rating_date,
+        cast(date as date)              as rating_date,
 
         -- build-up play: speed, dribbling and passing style
         buildUpPlaySpeed                as build_up_play_speed,

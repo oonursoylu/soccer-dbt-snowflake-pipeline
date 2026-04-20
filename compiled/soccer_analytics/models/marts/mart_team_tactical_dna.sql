@@ -30,45 +30,50 @@ tactical_classes as (
         observation_count,
         round(avg_speed, 2) as speed_index,
         
-    case 
-        when avg_speed >= 65 then 'High'
-        when avg_speed >= 40 then 'Medium'
+    case
+        when avg_speed is null then null
+        when avg_speed >= 65   then 'High'
+        when avg_speed >= 40   then 'Medium'
         else 'Low'
     end
  as speed_class,
         
         round(avg_passing, 2) as passing_index,
         
-    case 
-        when avg_passing >= 65 then 'High'
-        when avg_passing >= 40 then 'Medium'
+    case
+        when avg_passing is null then null
+        when avg_passing >= 65   then 'High'
+        when avg_passing >= 40   then 'Medium'
         else 'Low'
     end
  as passing_class,
         
         round(avg_shooting, 2) as shooting_index,
         
-    case 
-        when avg_shooting >= 65 then 'High'
-        when avg_shooting >= 40 then 'Medium'
+    case
+        when avg_shooting is null then null
+        when avg_shooting >= 65   then 'High'
+        when avg_shooting >= 40   then 'Medium'
         else 'Low'
     end
  as shooting_class,
         
         round(avg_pressure, 2) as pressure_index,
         
-    case 
-        when avg_pressure >= 65 then 'High'
-        when avg_pressure >= 40 then 'Medium'
+    case
+        when avg_pressure is null then null
+        when avg_pressure >= 65   then 'High'
+        when avg_pressure >= 40   then 'Medium'
         else 'Low'
     end
  as pressure_class,
         
         round(avg_aggression, 2) as aggression_index,
         
-    case 
-        when avg_aggression >= 65 then 'High'
-        when avg_aggression >= 40 then 'Medium'
+    case
+        when avg_aggression is null then null
+        when avg_aggression >= 65   then 'High'
+        when avg_aggression >= 40   then 'Medium'
         else 'Low'
     end
  as aggression_class
@@ -92,10 +97,14 @@ final as (
         c.aggression_index,
         c.aggression_class,
 
-        case 
-            when c.speed_class = 'Low' and c.passing_class = 'High' then 'Tiki-Taka / Possession'
-            when c.speed_class = 'High' and c.shooting_class = 'High' then 'Fast Counter-Attack'
-            when c.pressure_class = 'High' and c.aggression_class = 'High' then 'High Pressing / Aggressive'
+
+        case
+            when c.pressure_class = 'High' and c.aggression_class = 'High'
+                then 'High Pressing / Aggressive'
+            when c.speed_class    = 'Low'  and c.passing_class    = 'High'
+                then 'Tiki-Taka / Possession'
+            when c.speed_class    = 'High' and c.shooting_class   = 'High'
+                then 'Fast Counter-Attack'
             else 'Balanced'
         end as tactical_archetype
         

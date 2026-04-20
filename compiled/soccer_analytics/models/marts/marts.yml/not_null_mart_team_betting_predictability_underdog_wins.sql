@@ -1,0 +1,11 @@
+
+    
+    
+
+
+
+select underdog_wins
+from SOCCER_DB.ci_pr_test_marts.mart_team_betting_predictability
+where underdog_wins is null
+
+
