@@ -5,8 +5,8 @@
       target_database='SOCCER_DB',
       target_schema='SNAPSHOTS',
       unique_key='team_attribute_pk',
-      strategy='timestamp',
-      updated_at='rating_date'
+      strategy='check',
+      check_cols=['build_up_play_speed', 'defence_pressure', 'chance_creation_shooting']
     )
 }}
 

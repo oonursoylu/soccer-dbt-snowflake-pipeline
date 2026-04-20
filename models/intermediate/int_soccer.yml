@@ -8,64 +8,57 @@ models:
         tests:
           - not_null
       - name: avg_goals_per_match
-        description: "Average goals per match, casted to decimal for precision."
-        # Ensuring the calculation never returns null
         tests:
           - not_null
 
-  - name: int_betting_logic
-    description: "Calculates bookie favorites and validates their predictions against match results."
+  - name: int_match_betting_analysis
+    description: "Match-level bookie favorite identification and prediction validation."
     columns:
-      # Match ID as the primary identifier to ensure uniqueness
       - name: match_id
-        description: "Primary key for the match."
         tests:
           - unique
           - not_null
       - name: bookie_favorite
-        description: "The team favored by bookmakers based on the lowest odds."
         tests:
+          - not_null
           - accepted_values:
-              values: ['Home', 'Away', 'Draw']
+              values: ['Home', 'Away', 'Draw', 'Tie']
       - name: prediction_status
-        description: "Indicator if the bookie's favorite actually won the match."
         tests:
+          - not_null
           - accepted_values:
-              values: ['Correct', 'Wrong']
+              values: ['Correct', 'Wrong', 'Ambiguous']
 
   - name: int_player_age_analysis
-    description: "Calculates player age exactly at the time of each FIFA rating."
+    description: "Player age at the time of each FIFA rating snapshot."
     columns:
-      # Ensuring each rating record is unique and traceable
       - name: attribute_pk
-        description: "Primary key for the specific player rating record."
         tests:
           - unique
           - not_null
       - name: age_at_rating
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              min_value: 14
+              max_value: 50
 
-  - name: int_player_physical_technical_stats
-    description: "Combines player profiles with attributes, including weight conversion to KG and BMI calculation."
+  - name: int_player_profiles
+    description: "Player profiles with unit conversions and BMI."
     columns:
-      # Primary key test for data integrity
       - name: attribute_pk
-        description: "Primary key for the specific player attribute record."
         tests:
           - unique
           - not_null
       - name: bmi
-        description: "Body Mass Index calculated using height in meters and weight in kg."
-        # Null check for the calculated column
-        tests: 
+        tests:
           - not_null
       - name: weight_kg
-        description: "Player weight converted from lbs to kilograms."
+        tests:
+          - not_null
 
   - name: int_team_match_performance
-    description: "Unpivoted match data to show performance from each team's perspective (Home or Away)."
-    # Composite unique test to ensure the unpivot didn't create duplicates
+    description: "Unpivoted team match performance."
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns:
@@ -75,12 +68,14 @@ models:
       - name: team_id
         tests:
           - not_null
-      # Match ID is NOT unique on its own here, but must not be null
       - name: match_id
         tests:
           - not_null
+      - name: venue
+        tests:
+          - accepted_values:
+              values: ['Home', 'Away']
       - name: points_earned
-        description: "Points awarded based on match result (3 for Win, 1 for Draw, 0 for Loss)."
         tests:
           - accepted_values:
               values: [0, 1, 3]

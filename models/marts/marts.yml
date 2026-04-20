@@ -2,27 +2,30 @@ version: 2
 
 models:
   - name: mart_league_standings
-    description: "Professional football league standings."
+    description: "Professional football league standings per season and league."
     tests:
       - dbt_utils.expression_is_true:
-          arguments: # Fixed comment syntax: YAML uses #, not --
+          arguments:
             expression: "total_points >= 0"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "wins + draws + losses = matches_played"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "(wins * 3) + draws = total_points"
     columns:
       - name: league_position
-        description: "Final ranking of the team based on total points."
         tests:
           - not_null
       - name: team_name
-        description: "Name of the football club."
         tests:
           - not_null
       - name: total_points
-        description: "Total points accumulated in the season."
         tests:
           - not_null
 
   - name: mart_player_performance_evolution
-    description: "Tracks career progression by comparing initial vs peak rating."
+    description: "Career progression: initial vs peak rating and peak duration."
     tests:
       - dbt_utils.expression_is_true:
           arguments:
@@ -30,40 +33,51 @@ models:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "peak_rating >= initial_rating"
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "peak_duration_months >= 0"
     columns:
       - name: player_name
-        description: "Full name of the player."
         tests:
           - not_null
       - name: growth_percentage
-        description: "Percentage growth from initial to peak rating."
         tests:
           - not_null
       - name: peak_rating
-        description: "Highest FIFA rating achieved."
         tests:
           - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 99
+      - name: initial_rating
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 1
+              max_value: 99
 
   - name: mart_team_tactical_dna
-    description: "Aggregates historical FIFA team attributes to identify tactical identity."
+    description: "Tactical identity based on historical team attributes."
     tests:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "observation_count >= 5"
     columns:
       - name: tactical_archetype
-        description: "Categorized tactical playstyle."
         tests:
           - not_null
           - accepted_values:
-              values: ['Tiki-Taka / Possession', 'Fast Counter-Attack', 'High Pressing / Aggressive', 'Balanced']
+              values:
+                - 'Tiki-Taka / Possession'
+                - 'Fast Counter-Attack'
+                - 'High Pressing / Aggressive'
+                - 'Balanced'
       - name: observation_count
-        description: "Number of historical records analyzed."
         tests:
           - not_null
 
   - name: mart_team_betting_predictability
-    description: "Analyzes how predictable a team is based on betting odds."
+    description: "How predictable a team is relative to betting odds, with full upsets and draw upsets tracked separately."
     tests:
       - dbt_utils.expression_is_true:
           arguments:
@@ -71,12 +85,30 @@ models:
       - dbt_utils.expression_is_true:
           arguments:
             expression: "total_matches >= 10"
+      # Sanity: total_unpredictable_events must equal the sum of its parts
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "total_unpredictable_events = favorite_fails + underdog_wins + draw_upsets"
+      # Sanity: full_upsets must equal favorite_fails + underdog_wins
+      - dbt_utils.expression_is_true:
+          arguments:
+            expression: "full_upsets = favorite_fails + underdog_wins"
     columns:
       - name: unpredictability_index
-        description: "Score representing betting volatility."
         tests:
           - not_null
       - name: total_matches
-        description: "Total matches played."
+        tests:
+          - not_null
+      - name: favorite_fails
+        tests:
+          - not_null
+      - name: underdog_wins
+        tests:
+          - not_null
+      - name: draw_upsets
+        tests:
+          - not_null
+      - name: high_risk_matches
         tests:
           - not_null

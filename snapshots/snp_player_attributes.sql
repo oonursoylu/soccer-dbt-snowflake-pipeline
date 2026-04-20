@@ -5,8 +5,8 @@
       target_database='SOCCER_DB',
       target_schema='SNAPSHOTS',
       unique_key='attribute_pk',
-      strategy='timestamp',
-      updated_at='rating_date'
+      strategy='check',
+      check_cols=['overall_rating', 'potential']
     )
 }}
 

@@ -4,6 +4,9 @@ config-version: 2
 
 profile: 'soccer_analytics'
 
+vars:
+  analysis_end_date: '2016-06-30'
+
 model-paths: ["models"]
 analysis-paths: ["analyses"]
 test-paths: ["tests"]
@@ -22,7 +25,8 @@ models:
       +tags: ["stg"]
 
     intermediate:
-      +materialized: ephemeral
+      +materialized: view
+      +schema: intermediate
       +tags: ["int"]
 
     marts:

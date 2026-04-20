@@ -1,39 +1,71 @@
 with matches as (
-    -- Filtering nulls early is better for performance
     select * from {{ ref('stg_soccer__matches') }}
     where odds_home_win is not null
+      and odds_draw     is not null
+      and odds_away_win is not null
 ),
 
 find_favorite as (
     select
         match_id,
+        season,
+        league_id,
         match_date,
+        home_team_id,
+        away_team_id,
         home_team_goal,
         away_team_goal,
         odds_home_win,
         odds_draw,
         odds_away_win,
 
-        -- Step 1: Identify the favorite
-        case 
-            when odds_home_win < odds_away_win and odds_home_win < odds_draw then 'Home'
-            when odds_away_win < odds_home_win and odds_away_win < odds_draw then 'Away'
-            else 'Draw' 
-        end as bookie_favorite
+        least(odds_home_win, odds_draw, odds_away_win) as min_odds
     from matches
+),
+
+classified_favorite as (
+    select
+        *,
+        case
+            when odds_home_win = min_odds
+                 and odds_away_win <> min_odds
+                 and odds_draw     <> min_odds then 'Home'
+            when odds_away_win = min_odds
+                 and odds_home_win <> min_odds
+                 and odds_draw     <> min_odds then 'Away'
+            when odds_draw = min_odds
+                 and odds_home_win <> min_odds
+                 and odds_away_win <> min_odds then 'Draw'
+            else 'Tie'
+        end as bookie_favorite
+    from find_favorite
 ),
 
 validate_prediction as (
     select
         *,
-        -- Step 2: Validate the prediction using the calculated column (DRY Principle)
         case
-            when bookie_favorite = 'Home' and home_team_goal > away_team_goal then 'Correct'
-            when bookie_favorite = 'Away' and away_team_goal > home_team_goal then 'Correct'
-            when bookie_favorite = 'Draw' and home_team_goal = away_team_goal then 'Correct'
+            when bookie_favorite = 'Home' and home_team_goal >  away_team_goal then 'Correct'
+            when bookie_favorite = 'Away' and away_team_goal >  home_team_goal then 'Correct'
+            when bookie_favorite = 'Draw' and home_team_goal =  away_team_goal then 'Correct'
+            when bookie_favorite = 'Tie'                                       then 'Ambiguous'
             else 'Wrong'
         end as prediction_status
-    from find_favorite
+    from classified_favorite
 )
 
-select * from validate_prediction
+select
+    match_id,
+    season,
+    league_id,
+    match_date,
+    home_team_id,
+    away_team_id,
+    home_team_goal,
+    away_team_goal,
+    odds_home_win,
+    odds_draw,
+    odds_away_win,
+    bookie_favorite,
+    prediction_status
+from validate_prediction
