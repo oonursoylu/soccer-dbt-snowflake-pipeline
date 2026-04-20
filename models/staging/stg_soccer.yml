@@ -1,8 +1,39 @@
 version: 2
 
 models:
+  - name: stg_soccer__country
+    description: "Staging model for country reference data."
+    columns:
+      - name: country_id
+        description: "Unique business identifier for a country."
+        tests:
+          - unique
+          - not_null
+      - name: country_name
+        tests:
+          - not_null
+
+  - name: stg_soccer__league
+    description: "Staging model for leagues."
+    columns:
+      - name: league_id
+        description: "Unique business identifier for a league."
+        tests:
+          - unique
+          - not_null
+      - name: country_id
+        description: "Foreign key to country."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_soccer__country')
+              field: country_id
+      - name: league_name
+        tests:
+          - not_null
+
   - name: stg_soccer__player
-    description: "Staging model for player profiles. Uses player_api_id as the primary business key."
+    description: "Staging model for player profiles."
     columns:
       - name: player_id
         description: "The unique business identifier for a player."
@@ -14,7 +45,7 @@ models:
           - not_null
 
   - name: stg_soccer__team
-    description: "Staging model for teams. Uses team_api_id as the primary business key."
+    description: "Staging model for teams."
     columns:
       - name: team_id
         description: "The unique business identifier for a team."
@@ -23,7 +54,7 @@ models:
           - not_null
 
   - name: stg_soccer__matches
-    description: "Staging model for matches. Contains goals and historical betting odds."
+    description: "Staging model for matches."
     columns:
       - name: match_id
         tests:
@@ -32,9 +63,21 @@ models:
       - name: home_team_id
         tests:
           - not_null
+          - relationships:
+              to: ref('stg_soccer__team')
+              field: team_id
       - name: away_team_id
         tests:
           - not_null
+          - relationships:
+              to: ref('stg_soccer__team')
+              field: team_id
+      - name: league_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_soccer__league')
+              field: league_id
 
   - name: stg_soccer__player_attributes
     description: "Staging model for player ratings history."
@@ -47,6 +90,9 @@ models:
       - name: player_id
         tests:
           - not_null
+          - relationships:
+              to: ref('stg_soccer__player')
+              field: player_id
 
   - name: stg_soccer__team_attributes
     description: "Staging model for team tactical attributes."
@@ -58,3 +104,6 @@ models:
       - name: team_id
         tests:
           - not_null
+          - relationships:
+              to: ref('stg_soccer__team')
+              field: team_id
