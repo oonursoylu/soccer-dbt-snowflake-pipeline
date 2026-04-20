@@ -15,7 +15,6 @@ age_calc as (
         a.rating_date,
         a.overall_rating,
 
-        -- Correct age calc: subtract 1 if birthday hasn't passed this year
         datediff('year', p.birthday_date, a.rating_date)
         - case
               when to_char(a.rating_date,   'MMDD')
@@ -25,6 +24,8 @@ age_calc as (
           end as age_at_rating
     from players p
     inner join attributes a on p.player_id = a.player_id
+    -- Data quality filter: exclude default/malformed rating_date entries from the source system
+    where a.rating_date >= '2008-01-01'
 )
 
 select
