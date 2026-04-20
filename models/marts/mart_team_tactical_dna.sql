@@ -62,10 +62,14 @@ final as (
         c.aggression_index,
         c.aggression_class,
 
-        case 
-            when c.speed_class = 'Low' and c.passing_class = 'High' then 'Tiki-Taka / Possession'
-            when c.speed_class = 'High' and c.shooting_class = 'High' then 'Fast Counter-Attack'
-            when c.pressure_class = 'High' and c.aggression_class = 'High' then 'High Pressing / Aggressive'
+
+        case
+            when c.pressure_class = 'High' and c.aggression_class = 'High'
+                then 'High Pressing / Aggressive'
+            when c.speed_class    = 'Low'  and c.passing_class    = 'High'
+                then 'Tiki-Taka / Possession'
+            when c.speed_class    = 'High' and c.shooting_class   = 'High'
+                then 'Fast Counter-Attack'
             else 'Balanced'
         end as tactical_archetype
         
