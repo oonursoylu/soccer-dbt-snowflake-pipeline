@@ -11,6 +11,9 @@ snapshots:
       - name: player_id
         tests:
           - not_null
+      - name: attribute_pk
+        tests:
+          - not_null
       - name: dbt_valid_from
         tests:
           - not_null
@@ -34,5 +37,8 @@ snapshots:
           - unique
           - not_null
       - name: team_id
+        tests:
+          - not_null
+      - name: team_attribute_pk
         tests:
           - not_null
