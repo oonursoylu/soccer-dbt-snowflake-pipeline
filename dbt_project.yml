@@ -22,8 +22,6 @@ models:
       +tags: ["stg"]
 
     intermediate:
-      # Ephemeral means it won't create physical tables/views in Snowflake
-      # It acts as a CTE (Common Table Expression) injected into the mart models
       +materialized: ephemeral
       +tags: ["int"]
 
