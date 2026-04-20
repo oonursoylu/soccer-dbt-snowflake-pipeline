@@ -4,10 +4,9 @@
     config(
       target_database='SOCCER_DB',
       target_schema='SNAPSHOTS',
-      unique_key='player_id',
-      strategy='timestamp',
-      updated_at='rating_date',
-      invalidate_hard_deletes=True
+      unique_key='attribute_pk',
+      strategy='check',
+      check_cols=['overall_rating', 'potential']
     )
 }}
 
