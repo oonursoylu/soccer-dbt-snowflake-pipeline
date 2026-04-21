@@ -4,6 +4,7 @@
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data_Cloud-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
 [![AWS](https://img.shields.io/badge/AWS-S3_Stage-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
 [![dbt CI/CD Pipeline](https://img.shields.io/github/actions/workflow/status/oonursoylu/soccer-dbt-snowflake-pipeline/dbt_pipeline.yml?style=for-the-badge&logo=github&label=CI/CD)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions)
+[![Tests](https://img.shields.io/badge/dbt_tests-101_passing-brightgreen?style=for-the-badge)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline)
 
 ---
 
@@ -23,8 +24,8 @@ The pipeline processes the renowned Kaggle dataset: [European Soccer Database](h
 
 - **Scale:** Over 25,000 matches, over 10,000 players, 11 major European Leagues
 - **Timeline:** Covers 8 consecutive seasons of historical data
-- **Infrastructure:** 7 Staging Views, 3 SCD Type 2 Snapshots, 5 Ephemeral Intermediate Models, 4 Materialized Data Marts, and 2 Custom Jinja Macros.
-- **Quality Assurance:** 60+ automated dbt data tests integrated into a continuous CI/CD pipeline (GitHub Actions), ensuring zero-breakage deployments.
+- **Infrastructure:** 7 staging views, 5 intermediate views, 3 SCD Type 2 snapshots, 4 materialized marts, and 2 Jinja macros.
+- **Quality Assurance:** 101 dbt tests wired into a GitHub Actions CI pipeline. Every PR runs the full build against Snowflake before merge.
 
 ---
 
@@ -45,6 +46,7 @@ By querying the finalized Data Marts (`mart_`), the pipeline uncovered several c
 * **The "Giant Killer" Index:** By algorithmically comparing bookmaker odds against actual match outcomes, the unpredictability model mathematically proved that the **Scottish Premiership** is the most volatile and unpredictable league, with favorites failing to win at a significantly higher rate (**Average Upset Rate: 36.8%**) than other top-tier European leagues.
 * **Offensive Dominance:** Analyzing historical league standings shows that **Real Madrid CF (2011/2012 Season)** stands as the most lethal attacking side within the dataset's history (2008–2016), averaging a staggering **3.18 goals per game**.
 * **The Invincibles (Peak Win Rate):** The pipeline identified the **2010/2011 FC Porto** squad as the most dominant single-season team, achieving a monumental **90.0% Win Rate** across their entire domestic campaign.
+* **Source Data Quality Surfaced by Tests:** A range test on `age_at_rating` failed on ~16,000 rows during development — every one of them stamped with the same rating date (`2007-02-22`) and showing players aged 8-9. The shared timestamp gave it away as a source-system default for missing dates, not a pipeline bug. A documented filter in `int_player_age_analysis` (`rating_date >= '2008-01-01'`) removes these records before downstream aggregation. The fix is in the intermediate layer on purpose: staging preserves raw data untouched, and the business rule ("ignore pre-2008 default entries") belongs next to the models that depend on it.
 
 ---
 
@@ -70,25 +72,32 @@ Verification of player peak tracking and longitudinal data. The query securely f
 Extracted raw relational data from a local `.sqlite` database, transformed it into structured flat files, and orchestrated the secure upload to an **AWS S3 Bucket**. Configured an S3 External Stage within Snowflake, utilizing optimized `COPY INTO` bulk loading to ingest **over 220,000 total historical records across all entities** into the `RAW` database layer before triggering the dbt pipeline.
 
 ### 2. Slowly Changing Dimensions (SCD Type 2)
-Implemented dbt `snapshots` using a hybrid approach combining `timestamp` and `check` strategies to track historical changes in player physical attributes and team tactical metrics — enabling true point-in-time analysis without data loss.
+Three snapshots track how player ratings, player physical profiles, and team tactical attributes change over time. All three use the `check` strategy: the source data has no reliable `updated_at` timestamp, and an earlier attempt using `timestamp` + `player_id` as the unique key surfaced duplicate-row errors because the source occasionally records multiple entries for the same player on the same day. Tracking specific columns (`overall_rating`, `potential` for players; `build_up_play_speed`, `defence_pressure`, `chance_creation_shooting` for teams) produces a clean SCD Type 2 history without depending on potentially dirty timestamps.
 
-### 3. DRY Principles with Modular Jinja Macros
-Abstracted complex, repetitive business logic (betting upset identification, tactical threshold categorizations) into reusable **Jinja Macros** (`is_favorite_upset`, `classify_tactical_score`). Ensures a Single Source of Truth — if business definitions change, logic is updated in one place and propagates automatically.
+### 3. Reusable Business Logic via Jinja Macros
+Two macros isolate logic that otherwise would have drifted across models:
 
-### 4. Advanced Window Functions & CTE Stacking
-- Solved SQL nested window function limitations (e.g., pinpointing the exact date of a career peak) via logical CTE stacking
-- Utilized `RANK() OVER (PARTITION BY ...)` for dynamic league standings based on strict European tie-breaking rules (Points → Goal Difference → Goals Scored)
+- `is_favorite_upset` classifies each team's result against the bookmakers' implied prediction. It distinguishes three kinds of surprise: full upsets (favorite loses or underdog wins), draw upsets (a draw against a clear favorite — weighted as a half-surprise in the downstream index), and high-risk matches where the bookmaker had no clear favorite at all.
+- `classify_tactical_score` bands raw FIFA tactical scores into High / Medium / Low tiers and propagates NULL instead of collapsing missing data into "Low" — the difference matters when aggregating team identity.
 
-### 5. Rigorous Data Quality & Governance
-- **60+ dbt tests** covering `not_null`, `unique`, and `accepted_values`.
-- **4 Custom Singular Tests:** Implemented advanced SQL-based validations:
-  - `assert_peak_rating_logic`: Validates that a player's peak rating mathematically cannot be lower than their initial rating.
-  - `assert_realistic_match_counts`: Prevents data volume anomalies (fan-out) by capping maximum league matches.
-  - `assert_valid_fifa_ratings`: Ensures attribute scores strictly fall within the official FIFA range (1-99).
-  - `assert_valid_unpredictability_index`: Mathematically validates that the unpredictability percentage strictly falls within the valid 0-100 range.
+Changing a threshold or a category label is a one-file edit, not a search-and-replace across four marts.
 
-### 6. Automated CI/CD Pipeline
-Implemented a robust CI/CD workflow using **GitHub Actions**. Every push or pull request triggers an automated `dbt build` cycle in Snowflake, verifying model integrity and executing 60+ data quality tests before merging, ensuring a zero-breakage deployment strategy.
+### 4. Window Functions Split Across CTEs
+Finding the exact date of a player's career peak requires applying one aggregate over the result of another — `MAX(rating_date WHERE rating = MAX(rating) OVER ...) OVER ...` — which Snowflake rejects. Breaking the calculation across two CTEs (compute the peak value in one, use it as a plain column in the next) sidesteps the restriction without losing clarity.
+
+League standings use `RANK() OVER (PARTITION BY season, league_id ORDER BY total_points DESC, goal_difference DESC, total_goals_scored DESC)` — `RANK` rather than `DENSE_RANK` or `ROW_NUMBER` because real football tables share positions on ties and skip the next slot (e.g., 1, 2, 2, 4).
+
+### 5. Data Quality Testing
+The project runs 101 tests on every build. Most are generic (`not_null`, `unique`, `accepted_values`, `relationships`, `dbt_utils.accepted_range`, `dbt_utils.expression_is_true`) declared in YAML alongside the models they cover. Three are custom singular tests that generic tests cannot express:
+
+- `assert_realistic_match_counts`: no team plays more than 50 league matches per season — catches unpivot fan-out bugs.
+- `assert_valid_fifa_ratings`: initial and peak ratings stay within the real FIFA 1-99 range.
+- `assert_wins_equal_losses_per_league_season`: within each league season, total wins across all teams must equal total losses (draws contribute to neither side). This is a cross-row invariant that generic column tests can't check — if it ever fails, there is either a duplicated match row or a broken unpivot upstream.
+
+Mart-level invariants like `wins + draws + losses = matches_played`, `(wins * 3) + draws = total_points`, and `total_unpredictable_events = favorite_fails + underdog_wins + draw_upsets` are also enforced as `expression_is_true` tests — the kind of sanity check that turns an aggregation bug from a silent error into a loud one.
+
+### 6. CI Pipeline
+A GitHub Actions workflow runs `dbt build` against a dedicated Snowflake CI schema on every push to `main` and every pull request targeting it. If any of the 101 tests fail, the PR blocks merge. On successful main-branch runs, the workflow also regenerates and publishes the dbt docs site.
 
 ---
 
