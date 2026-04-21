@@ -14,7 +14,7 @@ This project is an end-to-end Analytics Engineering pipeline built to transform 
 
 **Target Audience:**
 - **BI Analysts:** Query ready-to-use analytical tables directly from the `analytics_marts` schema in Snowflake.
-- **Data Scientists & Engineers:** Leverage SCD Type 2 historical snapshots for exact point-in-time feature engineering. Ephemeral models are used for logical CTE abstraction and modularization, keeping the DAG clean without creating additional tables in Snowflake.
+- **Data Scientists & Engineers:** Use SCD Type 2 historical snapshots for point-in-time feature engineering. Intermediate models are materialized as views, which makes them queryable for debugging while keeping storage cost minimal.
 
 ---
 
@@ -39,13 +39,13 @@ The project strictly follows a multi-layered, modular architecture based on Mode
 
 ## Key Business Insights Delivered
 
-By querying the finalized Data Marts (`mart_`), the pipeline uncovered several compelling, data-driven historical insights:
+By querying the finalized Data Marts (`mart_`), the pipeline uncovers several concrete historical insights:
 
-* **The Elite Tiers (SCD Type 2 Depth):** The model identified all players who reached the legendary **90+ overall rating** milestone within the dataset. By preserving historical attribute changes via SCD Type 2 row insertions, the pipeline tracks the exact volume of updates (`total_updates`) and enables precise analytical calculations based on that history—such as identifying that **Lionel Messi** hit his absolute peak (94) at age 28, and **Cristiano Ronaldo** (93) at age 30.
-* **Data-Driven Peak Age:** Statistical aggregation of historical player lifecycles reveals that a European soccer player hits their statistical prime (Peak FIFA Rating) at an average age of **26.1 years**, reflecting the underlying algorithms of the video game's attribute data.
-* **The "Giant Killer" Index:** By algorithmically comparing bookmaker odds against actual match outcomes, the unpredictability model mathematically proved that the **Scottish Premiership** is the most volatile and unpredictable league, with favorites failing to win at a significantly higher rate (**Average Upset Rate: 36.8%**) than other top-tier European leagues.
-* **Offensive Dominance:** Analyzing historical league standings shows that **Real Madrid CF (2011/2012 Season)** stands as the most lethal attacking side within the dataset's history (2008–2016), averaging a staggering **3.18 goals per game**.
-* **The Invincibles (Peak Win Rate):** The pipeline identified the **2010/2011 FC Porto** squad as the most dominant single-season team, achieving a monumental **90.0% Win Rate** across their entire domestic campaign.
+* **The 90+ Elite Club (SCD Type 2 Depth):** Thanks to the SCD Type 2 snapshots, we aren't just looking at the latest data; we can trace a player's entire evolution. The model tracks the exact volume of updates (`total_updates`) and pinpoints true historical peaks—for instance, identifying that **Lionel Messi** hit his absolute peak rating (94) at age 28, and **Cristiano Ronaldo** (93) at age 30.
+* **Data-Driven Peak Age:** When does a soccer player hit their prime? Aggregating the historical lifecycles shows that the average European player reaches their highest FIFA rating at exactly **25.6 years** old.
+* **The "Giant Killer" Index:** By comparing bookmaker odds against actual match outcomes, the predictability mart highlights the **Scotland Premier League** as the most volatile domestic competition. Favorites drop points there at a higher rate (**36.82% upset rate**) than any other top European league.
+* **Offensive Dominance:** The historical standings reveal that the **Real Madrid CF (2011/2012)** squad was the most effective attacking side within the dataset's history (2008–2016), averaging **3.18 goals per game**.
+* **Peak Win Rate:** The **2010/2011 FC Porto** team holds the record for the most dominant single-season performance, finishing their domestic campaign with a **90.0% win rate**.
 * **Source Data Quality Surfaced by Tests:** A range test on `age_at_rating` failed on ~16,000 rows during development — every one of them stamped with the same rating date (`2007-02-22`) and showing players aged 8-9. The shared timestamp gave it away as a source-system default for missing dates, not a pipeline bug. A documented filter in `int_player_age_analysis` (`rating_date >= '2008-01-01'`) removes these records before downstream aggregation. The fix is in the intermediate layer on purpose: staging preserves raw data untouched, and the business rule ("ignore pre-2008 default entries") belongs next to the models that depend on it.
 
 ---
