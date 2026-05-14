@@ -16,9 +16,7 @@ snapshot-paths: ["snapshots"]
 
 models:
   soccer_analytics:
-    # Adding a global tag for the entire project
     +tags: ["soccer_pipeline"]
-
     staging:
       +materialized: view
       +schema: staging

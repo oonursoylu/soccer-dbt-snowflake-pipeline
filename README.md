@@ -5,6 +5,7 @@
 [![AWS](https://img.shields.io/badge/AWS-S3_Stage-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
 [![dbt CI/CD Pipeline](https://img.shields.io/github/actions/workflow/status/oonursoylu/soccer-dbt-snowflake-pipeline/dbt_pipeline.yml?style=for-the-badge&logo=github&label=CI/CD)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions)
 [![Tests](https://img.shields.io/badge/dbt_tests-101_passing-brightgreen?style=for-the-badge)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline)
+[![dbt Docs](https://img.shields.io/badge/dbt_Docs-Live_Site-10B981?style=for-the-badge&logo=readthedocs&logoColor=white)](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)
 
 ---
 
@@ -34,6 +35,9 @@ The pipeline processes the renowned Kaggle dataset: [European Soccer Database](h
 The project strictly follows a multi-layered, modular architecture based on Modern Data Stack principles, highlighting point-in-time historical tracking via Snapshots.
 
 ![dbt Data Lineage Graph](assets/dbt_lineage_graph.png)
+
+> **💡 Want to explore the data dictionary interactively?**
+> [🌐 Click Here to View the Live dbt Documentation](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)
 
 ---
 
