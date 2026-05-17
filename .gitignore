@@ -4,4 +4,4 @@ logs/
 .env
 .vscode/
 dbt-env/
-~/
+
