@@ -3,7 +3,7 @@ USE ROLE TRANSFORM_ROLE;
 USE DATABASE SOCCER_DB;
 USE SCHEMA RAW;
 
--- 2. Create the external stage linking to your specific S3 bucket
+-- 2. Create the external stage linking to specific S3 bucket
 CREATE OR REPLACE STAGE SOCCER_S3_STAGE
   URL = 's3://dbt-soccer-portfolio-oonur/'
   CREDENTIALS = (

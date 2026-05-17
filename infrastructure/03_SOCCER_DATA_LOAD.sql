@@ -13,7 +13,7 @@ CREATE OR REPLACE FILE FORMAT SOCCER_CSV_FORMAT
   FIELD_OPTIONALLY_ENCLOSED_BY = '"'
   COMMENT = 'Format for parsing comma-separated soccer data';
 
--- 3. Magic Touch: Peek into the S3 file directly without loading the data!
+-- 3. Peek into the S3 file directly without loading the data!
 SELECT $1, $2, $3, $4, $5 
 FROM @SOCCER_S3_STAGE/teams.csv 
 (FILE_FORMAT => SOCCER_CSV_FORMAT) 
