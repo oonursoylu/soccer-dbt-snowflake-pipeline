@@ -255,15 +255,23 @@ On successful main-branch runs, the workflow also regenerates and publishes the 
 
 ```text
 .
-├── .github/workflows/       # GitHub Actions workflow
-├── analyses/                # SQL analysis queries
-├── assets/                  # Images used in README
-├── infrastructure/          # Ingestion and setup files
-├── macros/                  # Reusable dbt macros
-├── models/                  # Staging, intermediate, and mart models
+├── .github/workflows/       # GitHub Actions workflow for dbt CI/CD
+├── analyses/                # SQL queries used for validation and exploration
+├── assets/                  # README images and sample query outputs
+├── infrastructure/          # Snowflake, AWS, and ingestion setup files
+├── macros/                  # Reusable dbt Jinja macros
+├── models/                  # dbt models
+│   ├── staging/             # Source-level cleaning and standardization
+│   ├── intermediate/        # Business logic and reusable transformations
+│   └── marts/               # Final analytics-ready mart models
 ├── seeds/                   # Static mapping tables
-├── snapshots/               # dbt snapshots
+├── snapshots/               # dbt snapshots for historical tracking
 ├── tests/                   # Custom singular dbt tests
+├── dbt_project.yml          # Main dbt project configuration
+├── packages.yml             # dbt package dependencies
+├── package-lock.yml         # Locked dbt package versions
+├── .gitignore               # Ignored local/generated files
+├── LICENSE
 └── README.md
 ```
 
