@@ -1,4 +1,4 @@
-# Analytics Engineering Pipeline with dbt, Snowflake, AWS, and CI/CD
+# Soccer Analytics Engineering Pipeline with dbt and Snowflake
 
 [![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?style=for-the-badge&logo=dbt&logoColor=white)](https://www.getdbt.com/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data_Cloud-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
@@ -9,37 +9,35 @@
 
 ## Overview
 
-This project is an end-to-end analytics engineering pipeline built with **dbt, Snowflake, AWS S3, and GitHub Actions**.
+This project is a portfolio analytics engineering pipeline built with **dbt Core, Snowflake, AWS S3, and GitHub Actions**.
 
-It uses the public European Soccer Database as the source data. The main focus is not football analysis itself, but the analytics engineering workflow around it: loading raw data into Snowflake, transforming it with dbt, testing the models, documenting the pipeline, and creating clean marts for analysis.
+It uses the public European Soccer Database from Kaggle. The goal is not to build a football app, but to show the kind of work an Analytics Engineer or Junior Data Engineer does in a modern warehouse project: load raw data, model it into clean analytical layers, test assumptions, document the logic, and publish useful marts for analysis.
 
-The final output is a small analytics warehouse with tested marts for team performance, player development, league standings, and match predictability.
+The original Kaggle data is provided as a SQLite database. I exported the SQLite tables to CSV files as a one-time bootstrap step using DB Browser for SQLite, uploaded those files to S3, loaded them into a Snowflake RAW schema with `COPY INTO`, and then transformed the data with dbt.
 
-**Main project highlights:**
+## Project Highlights
 
-- Snowflake warehouse with raw and analytics layers
-- dbt staging, intermediate, snapshot, and mart models
-- 3 SCD Type 2 snapshots for historical tracking
-- 4 materialized marts for analysis
-- 101 dbt tests, including custom data quality tests
-- GitHub Actions workflow running `dbt build`
-- Published dbt Docs with lineage and model documentation
+- Snowflake database with RAW, staging, intermediate, snapshot, and mart layers
+- 16 dbt models: 12 views and 4 materialized mart tables
+- 3 dbt snapshots using the `check` strategy
+- 101 dbt data tests, including custom singular tests
+- 2 dbt seeds for small country and league reference tables
+- 2 reusable Jinja macros for repeated business logic
+- GitHub Actions workflow for `dbt build`
+- Published dbt Docs site with model lineage and documentation
 
----
+## Why I Built This
 
-## Why I Built This Project
+I built this project to practice practical analytics engineering skills:
 
-I built this project to practice the type of work an Analytics Engineer or Junior Data Engineer does in a modern data stack:
+- converting raw relational data into analytical models
+- separating staging, intermediate, snapshot, and mart logic
+- writing tests that catch real data quality issues
+- using Snowflake as the warehouse layer
+- documenting model grain, business logic, and assumptions
+- validating dbt changes with CI
 
-- turn raw relational data into clean analytical models
-- design dbt layers that are easy to understand and maintain
-- add tests so data issues are caught early
-- document models for other data users
-- use CI/CD to validate changes before they are merged
-
-The dataset is football-related, but the project is focused on general data modeling, testing, documentation, and warehouse design skills.
-
----
+The dataset is football-related, but the engineering patterns are transferable to many business datasets.
 
 ## Tech Stack
 
@@ -51,9 +49,7 @@ The dataset is football-related, but the project is focused on general data mode
 | CI/CD | GitHub Actions |
 | Testing | dbt tests + dbt_utils |
 | Documentation | dbt Docs |
-| Source data | SQLite / Kaggle European Soccer Database |
-
----
+| Source data | Kaggle European Soccer Database / SQLite |
 
 ## Dataset and Scale
 
@@ -66,35 +62,37 @@ The project uses the [European Soccer Database](https://www.kaggle.com/datasets/
 | Leagues | 11 |
 | Seasons | 8 |
 | Total ingested records | 220,000+ |
-| Staging models | 7 |
-| Intermediate models | 5 |
-| Snapshots | 3 |
+| dbt models | 16 |
+| dbt snapshots | 3 |
 | Materialized marts | 4 |
-| Jinja macros | 2 |
-| dbt tests | 101 |
+| dbt seeds | 2 |
+| dbt sources | 5 |
+| dbt data tests | 101 |
+| Total nodes in latest `dbt build` | 122 |
 
----
+Latest local validation:
+
+```text
+dbt build completed successfully
+PASS=122 WARN=0 ERROR=0 SKIP=0 TOTAL=122
+Runtime: 37.16s
+dbt: 1.11.10
+Snowflake adapter: 1.11.5
+```
 
 ## Pipeline Architecture
 
-```text
-SQLite source data
-        ↓
-Extract to flat files
-        ↓
-AWS S3 bucket
-        ↓
-Snowflake RAW layer
-        ↓
-dbt staging models
-        ↓
-dbt intermediate models
-        ↓
-dbt snapshots
-        ↓
-dbt marts
-        ↓
-dbt docs + CI checks
+```mermaid
+flowchart LR
+    A["Kaggle SQLite database"] --> B["One-time CSV export<br/>DB Browser for SQLite"]
+    B --> C["AWS S3 bucket"]
+    C --> D["Snowflake RAW schema<br/>COPY INTO"]
+    D --> E["dbt staging views"]
+    E --> F["dbt intermediate views"]
+    F --> G["dbt snapshots"]
+    F --> H["dbt mart tables"]
+    G --> H
+    H --> I["dbt Docs / analysis / BI-ready outputs"]
 ```
 
 ![dbt Data Lineage Graph](assets/dbt_lineage_graph.png)
@@ -102,62 +100,53 @@ dbt docs + CI checks
 Live documentation:  
 [dbt Docs](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)
 
----
-
 ## Final Data Marts
 
-The project creates four materialized mart models.
+The project creates four analytics-ready mart models.
 
-| Mart | Purpose |
-|---|---|
-| `mart_team_season_standings` | Team-level season performance: points, wins, losses, goals, ranking |
-| `mart_player_lifecycle` | Player rating history, peak rating, peak age, and number of updates |
-| `mart_match_predictability` | Match outcome analysis based on bookmaker odds and actual results |
-| `mart_team_tactical_profile` | Team tactical profile based on historical team attributes |
+| Mart | Grain | Purpose |
+|---|---|---|
+| `mart_league_standings` | One row per team, league, and season | Calculates league table metrics such as points, wins, losses, goals, and ranking |
+| `mart_player_performance_evolution` | One row per player | Compares initial rating, peak rating, rating growth, and peak timing |
+| `mart_team_betting_predictability` | One row per team, league, and season | Measures how often team results differed from bookmaker expectations |
+| `mart_team_tactical_dna` | One row per team | Classifies team tactical style using historical team attribute scores |
 
 These marts are easier to query than the raw normalized source tables and are designed for downstream analysis.
 
----
-
 ## Example Questions Answered
 
-The final marts can answer questions like:
-
-- Which teams had the strongest single-season performance?
-- At what age do players usually reach their highest rating?
-- Which leagues had the most unexpected match results?
-- How did player ratings change over time?
-- Are there source data problems that need to be handled before analysis?
-
----
+- Which teams had the strongest season-level performance?
+- Which players improved the most between their first and peak rating?
+- At what age did players in the dataset typically reach their peak rating?
+- Which teams or leagues were less predictable relative to betting odds?
+- Which teams show possession, counter-attacking, or high-pressing tactical profiles?
+- Which source data issues need to be handled before analysis?
 
 ## Selected Results
 
-### Player lifecycle analysis
+### Player Performance Evolution
 
-Using SCD Type 2 snapshots, the project tracks player rating changes over time instead of relying only on the latest available record.
+The player mart uses historical rating dates from the source attributes table to compare each player's first observed rating with their peak rating.
 
-For example, the model can identify peak rating, peak age, and the number of historical updates for each player.
+The model calculates peak rating, growth percentage, age at start, age at peak, and the duration of the peak rating period.
 
-### Peak player age
+### Peak Player Age
 
 Aggregating player lifecycle records shows that the average player in the dataset reaches peak rating at about **25.6 years old**.
 
-### Match predictability
+### Match Predictability
 
-The match predictability mart compares bookmaker odds with actual match results and identifies leagues where favorites dropped points more often.
+The betting predictability mart compares Bet365 odds with actual match results. It separates full upsets from draw upsets so that unexpected draws do not get treated the same as outright underdog wins.
 
-### Team performance
+### Team Performance
 
-The team standings mart calculates season-level metrics such as points, win rate, goal difference, ranking, and goals per game.
-
----
+The league standings mart calculates season-level metrics such as points, win rate, goal difference, ranking, and goals per game.
 
 ## Data Quality Example
 
-During development, a range test on `age_at_rating` failed for around 16,000 rows.
+During development, a dbt range test on `age_at_rating` failed for around 16,000 rows.
 
-Those rows had the same rating date, `2007-02-22`, and unrealistic player ages of 8 or 9. This looked like a source-system default date, not a transformation bug.
+Those rows had the same rating date, `2007-02-22`, and produced unrealistic player ages of 8 or 9. This looked like a source-system default date rather than a transformation bug.
 
 I handled this in the intermediate layer with a documented filter:
 
@@ -165,42 +154,50 @@ I handled this in the intermediate layer with a documented filter:
 rating_date >= '2008-01-01'
 ```
 
-I kept the staging layer close to the raw source and applied the rule only where the player age analysis depends on valid rating dates.
+The staging layer stays close to the raw source. The filter is applied only in the player age analysis model, where valid rating dates are required for meaningful age calculations.
 
----
+This is the pattern I wanted to show: detect a data issue with a test, understand the business impact, and apply the rule at the narrowest layer where it is needed.
 
-## Key Engineering Details
+## Engineering Decisions
 
-### 1. AWS S3 and Snowflake loading
+### 1. SQLite to Snowflake Loading
 
-The raw SQLite data was exported to flat files, uploaded to AWS S3, and loaded into Snowflake using an external stage and `COPY INTO`.
+The Kaggle dataset starts as a SQLite database. I exported the source tables to CSV files as a one-time bootstrap step, uploaded them to AWS S3, and loaded them into Snowflake using an external stage and `COPY INTO`.
 
-This created a separate RAW layer before dbt transformations were executed.
+This created a separate RAW layer before any dbt transformations were executed.
 
-### 2. SCD Type 2 snapshots
+### 2. Source Freshness
 
-The project uses three dbt snapshots to track historical changes in:
+This dataset is historical and static, so daily source freshness is not expected. The `date` columns in the source tables represent match dates or rating dates, not ingestion timestamps.
+
+For that reason, I did not add a dbt source freshness check. A freshness check would become meaningful only if the ingestion process added a field such as `_loaded_at` to the RAW tables.
+
+### 3. dbt Snapshots
+
+The source data already contains historical player and team attribute records. The dbt snapshots are used to demonstrate SCD Type 2 mechanics and to preserve row-level changes across repeated warehouse loads.
+
+The snapshots use the `check` strategy because the source data does not provide a reliable `updated_at` column.
+
+Snapshots are configured for:
 
 - player ratings
-- player physical attributes
+- player physical profiles
 - team tactical attributes
 
-The snapshots use the `check` strategy because the source data does not have a reliable `updated_at` column.
-
-### 3. Reusable Jinja macros
+### 4. Reusable Jinja Macros
 
 Two Jinja macros keep repeated logic consistent:
 
-- `is_favorite_upset`: classifies match results against bookmaker expectations
-- `classify_tactical_score`: groups tactical scores into High / Medium / Low categories while keeping `NULL` values unchanged
+- `is_favorite_upset`: classifies a team's result relative to betting odds
+- `classify_tactical_score`: groups tactical scores into High, Medium, or Low categories while keeping `NULL` values unchanged
 
-This keeps repeated logic in one place instead of duplicating it across multiple models.
+This keeps repeated business logic in one place instead of duplicating the same `CASE` expressions across models.
 
-### 4. SQL modeling
+### 5. SQL Modeling
 
-The project uses CTEs, joins, aggregations, window functions, and ranking logic.
+The project uses CTEs, joins, aggregations, window functions, unpivot logic, and ranking logic.
 
-For league standings, I used `RANK()` instead of `ROW_NUMBER()` because teams can share the same position when tied.
+For league standings, I used `RANK()` instead of `ROW_NUMBER()` because teams can share the same position when tied on points and tie-breakers.
 
 ```sql
 RANK() OVER (
@@ -209,7 +206,7 @@ RANK() OVER (
 )
 ```
 
-### 5. Data quality testing
+### 6. Data Quality Testing
 
 The project includes 101 dbt tests. These include:
 
@@ -223,59 +220,51 @@ The project includes 101 dbt tests. These include:
 
 Examples of custom tests:
 
-- No team should play more than 50 league matches in one season
+- no team should play more than 50 league matches in one season
 - FIFA-style ratings should stay between 1 and 99
-- Total wins should equal total losses within each league season
+- total wins should equal total losses within each league season
 
-These tests help catch issues such as duplicated rows, broken unpivot logic, invalid ratings, and inconsistent aggregate metrics.
+These tests help catch duplicated rows, broken unpivot logic, invalid ratings, and inconsistent aggregate metrics.
 
-### 6. CI/CD workflow
+### 7. CI/CD Workflow
 
 A GitHub Actions workflow runs `dbt build` against a Snowflake CI schema on pull requests and pushes to `main`.
 
-If a model or test fails, the workflow fails.
-
-On successful main-branch runs, the workflow also regenerates and publishes the dbt Docs site.
-
----
+If a model or test fails, the workflow fails. On successful main-branch runs, the workflow regenerates and publishes the dbt Docs site.
 
 ## Sample Outputs
 
-### Team performance mart
+### Team Performance Mart
 
 ![Mart Standings Output](assets/mart_standings_sample.png)
 
-### Player lifecycle mart
+### Player Performance Evolution Mart
 
-![Mart Player Lifecycle Output](assets/mart_player_lifecycle_sample.png)
-
----
+![Mart Player Performance Evolution Output](assets/mart_player_lifecycle_sample.png)
 
 ## Repository Structure
 
 ```text
 .
-├── .github/workflows/       # GitHub Actions workflow for dbt CI/CD
-├── analyses/                # SQL queries used for validation and exploration
-├── assets/                  # README images and sample query outputs
-├── infrastructure/          # Snowflake, AWS, and ingestion setup files
-├── macros/                  # Reusable dbt Jinja macros
-├── models/                  # dbt models
-│   ├── staging/             # Source-level cleaning and standardization
-│   ├── intermediate/        # Business logic and reusable transformations
-│   └── marts/               # Final analytics-ready mart models
-├── seeds/                   # Static mapping tables
-├── snapshots/               # dbt snapshots for historical tracking
-├── tests/                   # Custom singular dbt tests
-├── dbt_project.yml          # Main dbt project configuration
-├── packages.yml             # dbt package dependencies
-├── package-lock.yml         # Locked dbt package versions
-├── .gitignore               # Ignored local/generated files
-├── LICENSE
-└── README.md
+|-- .github/workflows/       # GitHub Actions workflow for dbt CI/CD
+|-- analyses/                # SQL queries used for validation and exploration
+|-- assets/                  # README images and sample query outputs
+|-- infrastructure/          # Snowflake, AWS, and ingestion setup files
+|-- macros/                  # Reusable dbt Jinja macros
+|-- models/                  # dbt models
+|   |-- staging/             # Source-level cleaning and standardization
+|   |-- intermediate/        # Business logic and reusable transformations
+|   `-- marts/               # Final analytics-ready mart models
+|-- seeds/                   # Static mapping tables
+|-- snapshots/               # dbt snapshots for SCD Type 2 examples
+|-- tests/                   # Custom singular dbt tests
+|-- dbt_project.yml          # Main dbt project configuration
+|-- packages.yml             # dbt package dependencies
+|-- package-lock.yml         # Locked dbt package versions
+|-- .gitignore               # Ignored local/generated files
+|-- LICENSE
+`-- README.md
 ```
-
----
 
 ## How to Run the Project
 
@@ -288,7 +277,7 @@ cd soccer-dbt-snowflake-pipeline
 
 ### 2. Configure dbt profile
 
-Add this to `~/.dbt/profiles.yml` and replace the placeholders with your Snowflake credentials:
+Add this to `~/.dbt/profiles.yml` and replace the placeholders with your Snowflake account details.
 
 ```yaml
 soccer_analytics:
@@ -296,24 +285,39 @@ soccer_analytics:
   outputs:
     dev:
       type: snowflake
-      account: <your_account_id>
-      user: <your_username>
-      password: <your_password>
-      role: SYSADMIN
+      account: <your_account_identifier>
+      user: dbt_user
+      password: "{{ env_var('DBT_PASSWORD') }}"
+      role: TRANSFORM_ROLE
       database: SOCCER_DB
-      warehouse: COMPUTE_WH
-      schema: analytics_marts
+      warehouse: SOCCER_WH
+      schema: dev_schema
       threads: 4
+      client_session_keep_alive: false
+```
+
+Set the password as an environment variable before running dbt.
+
+PowerShell:
+
+```powershell
+$env:DBT_PASSWORD = '<your_password>'
+```
+
+macOS/Linux:
+
+```bash
+export DBT_PASSWORD='<your_password>'
 ```
 
 ### 3. Install dependencies and run dbt
 
 ```bash
 dbt deps
-dbt seed
-dbt snapshot
 dbt build
 ```
+
+`dbt build` runs the seeds, snapshots, models, and tests in dependency order.
 
 ### 4. Generate local docs
 
@@ -328,8 +332,6 @@ The docs will be available at:
 http://localhost:8080
 ```
 
----
-
 ## What This Project Shows
 
 This project shows my ability to:
@@ -337,22 +339,20 @@ This project shows my ability to:
 - build dbt models from raw source data
 - design staging, intermediate, snapshot, and mart layers
 - work with Snowflake and AWS S3
-- write analytical SQL with window functions and aggregations
+- write analytical SQL with CTEs, joins, window functions, and aggregations
 - add automated data quality tests
-- use dbt snapshots for historical tracking
+- use dbt snapshots for SCD Type 2 modeling examples
 - document models and columns with dbt Docs
-- use GitHub Actions for a basic CI workflow
-
----
+- use GitHub Actions for basic CI validation
+- explain data quality decisions instead of hiding source data problems
 
 ## Possible Next Improvements
 
-- Add Airflow to schedule the ingestion and dbt build steps
-- Add incremental models for larger datasets
-- Add a small BI dashboard on top of the marts
-- Add more environment separation between development and production schemas
-
----
+- Add a small Airflow or Prefect project to orchestrate CSV upload, Snowflake load, and dbt build steps
+- Add a reproducible SQLite-to-CSV export script to replace the one-time manual bootstrap step
+- Add `_loaded_at` fields to RAW tables if ingestion becomes scheduled, then add source freshness checks
+- Add a small Power BI dashboard on top of the marts
+- Add an incremental model only if a future ingestion flow appends or updates source data regularly
 
 ## License
 
@@ -360,6 +360,6 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 ## Contact
 
-**Onur Soylu** — Data / Analytics Engineer  
-[LinkedIn Profile](https://www.linkedin.com/in/onur-soylu-0ba931119/) | [oonursoylu@gmail.com](mailto:oonursoylu@gmail.com)
+**Onur Soylu** - Data / Analytics Engineer
 
+[LinkedIn Profile](https://www.linkedin.com/in/onur-soylu-0ba931119/) | [oonursoylu@gmail.com](mailto:oonursoylu@gmail.com)

@@ -15,12 +15,15 @@ models:
             expression: "(wins * 3) + draws = total_points"
     columns:
       - name: league_position
+        description: "Rank of the team within a league and season based on total points, goal difference, and goals scored."
         tests:
           - not_null
       - name: team_name
+        description: "Full team name from the team reference table."
         tests:
           - not_null
       - name: total_points
+        description: "Season points calculated from wins and draws using standard football scoring rules."
         tests:
           - not_null
 
@@ -38,18 +41,22 @@ models:
             expression: "peak_duration_months >= 0"
     columns:
       - name: player_name
+        description: "Player name from the player reference table."
         tests:
           - not_null
       - name: growth_percentage
+        description: "Percentage increase from the player's first observed rating to their peak observed rating."
         tests:
           - not_null
       - name: peak_rating
+        description: "Highest overall FIFA-style rating observed for the player in the source attributes history."
         tests:
           - not_null
           - dbt_utils.accepted_range:
               min_value: 1
               max_value: 99
       - name: initial_rating
+        description: "First overall FIFA-style rating observed for the player by rating date."
         tests:
           - not_null
           - dbt_utils.accepted_range:
@@ -64,6 +71,7 @@ models:
             expression: "observation_count >= 5"
     columns:
       - name: tactical_archetype
+        description: "Team tactical style classification derived from average tactical attribute scores."
         tests:
           - not_null
           - accepted_values:
@@ -73,6 +81,7 @@ models:
                 - 'High Pressing / Aggressive'
                 - 'Balanced'
       - name: observation_count
+        description: "Number of historical team attribute records used to calculate the tactical profile."
         tests:
           - not_null
 
@@ -95,20 +104,26 @@ models:
             expression: "full_upsets = favorite_fails + underdog_wins"
     columns:
       - name: unpredictability_index
+        description: "Weighted score from 0 to 100 measuring how often a team's results differed from betting expectations."
         tests:
           - not_null
       - name: total_matches
+        description: "Number of matches included for the team, league, and season after betting odds filters."
         tests:
           - not_null
       - name: favorite_fails
+        description: "Count of matches where the team was favored by the odds but lost."
         tests:
           - not_null
       - name: underdog_wins
+        description: "Count of matches where the team was an underdog by the odds but won."
         tests:
           - not_null
       - name: draw_upsets
+        description: "Count of draws that went against a clear home or away favorite prediction."
         tests:
           - not_null
       - name: high_risk_matches
+        description: "Count of matches where the odds did not identify a single clear favorite."
         tests:
           - not_null

@@ -2,7 +2,7 @@ version: 2
 
 snapshots:
   - name: snp_player_attributes
-    description: "SCD Type 2 history of player FIFA rating snapshots."
+    description: "SCD Type 2 snapshot table for player attribute rows, preserving changes across repeated warehouse loads."
     columns:
       - name: dbt_scd_id
         tests:
@@ -19,7 +19,7 @@ snapshots:
           - not_null
 
   - name: snp_player_profiles
-    description: "SCD Type 2 history of player physical profiles."
+    description: "SCD Type 2 snapshot table for player profile rows, preserving changes to physical profile fields."
     columns:
       - name: dbt_scd_id
         tests:
@@ -30,7 +30,7 @@ snapshots:
           - not_null
 
   - name: snp_team_attributes
-    description: "SCD Type 2 history of team tactical attributes."
+    description: "SCD Type 2 snapshot table for team tactical attribute rows, preserving changes across repeated warehouse loads."
     columns:
       - name: dbt_scd_id
         tests:
