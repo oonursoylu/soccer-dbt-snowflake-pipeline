@@ -3,7 +3,7 @@
 [![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?style=for-the-badge&logo=dbt&logoColor=white)](https://www.getdbt.com/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data_Cloud-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
 [![AWS](https://img.shields.io/badge/AWS-S3_Stage-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
-[![dbt CI/CD Pipeline](https://img.shields.io/github/actions/workflow/status/oonursoylu/soccer-dbt-snowflake-pipeline/dbt_pipeline.yml?style=for-the-badge&logo=github&label=CI/CD)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions)
+[![dbt CI + Docs Publishing](https://img.shields.io/github/actions/workflow/status/oonursoylu/soccer-dbt-snowflake-pipeline/dbt_pipeline.yml?style=for-the-badge&logo=github&label=CI%20%2B%20Docs)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions)
 [![Tests](https://img.shields.io/badge/dbt_tests-101_passing-brightgreen?style=for-the-badge)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline)
 [![dbt Docs](https://img.shields.io/badge/dbt_Docs-Live_Site-10B981?style=for-the-badge&logo=readthedocs&logoColor=white)](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)
 
@@ -46,7 +46,7 @@ The dataset is football-related, but the engineering patterns are transferable t
 | Data warehouse | Snowflake |
 | Transformation | dbt Core |
 | Cloud storage | AWS S3 |
-| CI/CD | GitHub Actions |
+| CI + docs publishing | GitHub Actions |
 | Testing | dbt tests + dbt_utils |
 | Documentation | dbt Docs |
 | Source data | Kaggle European Soccer Database / SQLite |
@@ -226,7 +226,7 @@ Examples of custom tests:
 
 These tests help catch duplicated rows, broken unpivot logic, invalid ratings, and inconsistent aggregate metrics.
 
-### 7. CI/CD Workflow
+### 7. CI and dbt Docs Publishing
 
 A GitHub Actions workflow runs `dbt build` against a Snowflake CI schema on pull requests and pushes to `main`.
 
@@ -246,7 +246,7 @@ If a model or test fails, the workflow fails. On successful main-branch runs, th
 
 ```text
 .
-|-- .github/workflows/       # GitHub Actions workflow for dbt CI/CD
+|-- .github/workflows/       # GitHub Actions workflow for dbt CI and docs publishing
 |-- analyses/                # SQL queries used for validation and exploration
 |-- assets/                  # README images and sample query outputs
 |-- infrastructure/          # Snowflake, AWS, and ingestion setup files
@@ -312,6 +312,8 @@ export DBT_PASSWORD='<your_password>'
 
 ### 3. Install dependencies and run dbt
 
+Before running dbt, the Snowflake database, warehouse, RAW schema, external stage, and source tables must be created and loaded using the SQL files in the `infrastructure/` folder. The dbt project assumes that the RAW tables already exist in Snowflake.
+
 ```bash
 dbt deps
 dbt build
@@ -362,4 +364,4 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 
 **Onur Soylu** - Data / Analytics Engineer
 
-[LinkedIn Profile](https://www.linkedin.com/in/onur-soylu-0ba931119/) | [oonursoylu@gmail.com](mailto:oonursoylu@gmail.com)
+[LinkedIn Profile](https://www.linkedin.com/in/oonursoylu/) | [oonursoylu@gmail.com](mailto:oonursoylu@gmail.com)
