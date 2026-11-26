@@ -3,7 +3,6 @@
 [![dbt](https://img.shields.io/badge/dbt-1.11+-FF694B?style=for-the-badge&logo=dbt&logoColor=white)](https://www.getdbt.com/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data_Cloud-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white)](https://www.snowflake.com/)
 [![AWS](https://img.shields.io/badge/AWS-S3_Stage-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)](https://aws.amazon.com/)
-[![dbt CI + Docs Publishing](https://img.shields.io/github/actions/workflow/status/oonursoylu/soccer-dbt-snowflake-pipeline/dbt_pipeline.yml?style=for-the-badge&logo=github&label=CI%20%2B%20Docs)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline/actions)
 [![Tests](https://img.shields.io/badge/dbt_tests-101_passing-brightgreen?style=for-the-badge)](https://github.com/oonursoylu/soccer-dbt-snowflake-pipeline)
 [![dbt Docs](https://img.shields.io/badge/dbt_Docs-Live_Site-10B981?style=for-the-badge&logo=readthedocs&logoColor=white)](https://oonursoylu.github.io/soccer-dbt-snowflake-pipeline/)
 
@@ -21,7 +20,7 @@ The Kaggle data comes as a SQLite database. I exported its tables to CSV once wi
 - 101 data tests, including custom singular tests
 - 2 seeds for small country and league reference tables
 - 2 Jinja macros for logic shared between models
-- A GitHub Actions workflow that runs `dbt build` and publishes the dbt Docs site
+- A GitHub Actions workflow that ran `dbt build` and published the dbt Docs site
 
 ## Tech stack
 
@@ -153,7 +152,9 @@ The 101 tests use `not_null`, `unique`, `accepted_values`, `relationships`, `dbt
 
 ### CI and docs
 
-A GitHub Actions workflow runs `dbt build` against a Snowflake CI schema on pull requests and on pushes to `main`. If a model or test fails, the workflow fails. Successful runs on `main` regenerate and publish the dbt Docs site.
+A GitHub Actions workflow ran `dbt build` against a Snowflake CI schema on pull requests and on pushes to `main`. If a model or test failed, the workflow failed. Successful runs on `main` regenerated and published the dbt Docs site.
+
+The workflow ran on a Snowflake trial account. The trial has ended, so the workflow is now switched off. The last published dbt Docs site is still online.
 
 ## Sample outputs
 
